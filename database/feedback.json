@@ -1,1 +1,30 @@
-[]
+[
+  {
+    "id": "db0c16c5-2d8f-45b9-9905-a7774fda8a2d",
+    "created_at": "2026-06-16T05:52:33.372Z",
+    "greeting_id": "7d1087e4-68c9-434c-8c53-9b939343e5d6",
+    "rating": 5,
+    "comments": ""
+  },
+  {
+    "id": "5e6e460c-26a7-4acb-b7f0-469d13e6961a",
+    "created_at": "2026-06-16T05:52:41.478Z",
+    "greeting_id": "77e16ee5-e6e6-44ee-9693-1f91c8753564",
+    "rating": 5,
+    "comments": ""
+  },
+  {
+    "id": "16b3a041-131b-4328-824d-ef5fdae9578e",
+    "created_at": "2026-06-16T05:53:33.549Z",
+    "greeting_id": "77e16ee5-e6e6-44ee-9693-1f91c8753564",
+    "rating": 3,
+    "comments": ""
+  },
+  {
+    "id": "3641b7c5-c0f3-4926-88d8-13ef034808ec",
+    "created_at": "2026-06-16T05:54:04.116Z",
+    "greeting_id": "ee20ada3-f377-451d-8793-a3dab6b86e0d",
+    "rating": 5,
+    "comments": ""
+  }
+]
