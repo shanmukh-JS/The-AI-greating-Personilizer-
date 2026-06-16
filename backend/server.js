@@ -15,7 +15,6 @@ const db = require('./db/mockDb');
 const aiService = require('./services/aiService');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'manivtha_travels_secret_jwt_key_2026';
 
 // -------------------------------------------------------------
@@ -447,11 +446,10 @@ app.use((err, req, res, next) => {
 });
 
 // Start listening
+const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-  console.log(`===================================================`);
-  console.log(`Server launched successfully on Port: ${PORT}`);
-  console.log(`Environment mode: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`===================================================`);
+  console.log(`Server running on port ${PORT}`);
 });
 
 module.exports = app;
