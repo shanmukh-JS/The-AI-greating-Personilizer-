@@ -1178,14 +1178,23 @@ function GreetingGenerator() {
     }
 
     const encodedText = encodeURIComponent(resultGreeting.generated_text);
-    const mode = localStorage.getItem('settings_whatsappMode') || 'web';
-    let url = `https://web.whatsapp.com/send?phone=${cleanNumber}&text=${encodedText}`;
+    const mode = localStorage.getItem('settings_whatsappMode') || 'app';
+    let url = '';
     if (mode === 'api') {
       url = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encodedText}`;
     } else if (mode === 'wa') {
       url = `https://wa.me/${cleanNumber}?text=${encodedText}`;
+    } else if (mode === 'app') {
+      url = `whatsapp://send?phone=${cleanNumber}&text=${encodedText}`;
+    } else {
+      url = `https://web.whatsapp.com/send?phone=${cleanNumber}&text=${encodedText}`;
     }
-    window.open(url, '_blank');
+    
+    if (mode === 'app') {
+      window.location.href = url;
+    } else {
+      window.open(url, '_blank');
+    }
 
     setAlertMessage(`✅ WhatsApp opened for +${cleanNumber} — click Send in WhatsApp to deliver.`);
 
@@ -1666,7 +1675,7 @@ function GreetingGenerator() {
                   {historyList.map((record) => {
                     const handleQuickWhatsApp = () => {
                       const encodedText = encodeURIComponent(record.generated_text);
-                      const mode = localStorage.getItem('settings_whatsappMode') || 'web';
+                      const mode = localStorage.getItem('settings_whatsappMode') || 'app';
                       
                       let cleanNumber = '';
                       if (record.whatsapp_number) {
@@ -1685,12 +1694,21 @@ function GreetingGenerator() {
                         url = cleanNumber
                           ? `https://wa.me/${cleanNumber}?text=${encodedText}`
                           : `https://wa.me/?text=${encodedText}`;
+                      } else if (mode === 'app') {
+                        url = cleanNumber
+                          ? `whatsapp://send?phone=${cleanNumber}&text=${encodedText}`
+                          : `whatsapp://send?text=${encodedText}`;
                       } else {
                         url = cleanNumber
                           ? `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encodedText}`
                           : `https://api.whatsapp.com/send?text=${encodedText}`;
                       }
-                      window.open(url, '_blank');
+                      
+                      if (mode === 'app') {
+                        window.location.href = url;
+                      } else {
+                        window.open(url, '_blank');
+                      }
                       // Update status to shared
                       api.put(`/history/${record.id}/status`, { status: 'shared' }).then(() => {
                         loadGreetingsHistory();
@@ -2280,7 +2298,7 @@ function SettingsPage() {
   // --- Data & Privacy ---
   const [historyRetention, setHistoryRetention] = useState(() => localStorage.getItem('settings_historyRetention') || '90');
   const [showWhatsapp, setShowWhatsapp] = useState(() => localStorage.getItem('settings_showWhatsapp') !== 'false');
-  const [whatsappMode, setWhatsappMode] = useState(() => localStorage.getItem('settings_whatsappMode') || 'web');
+  const [whatsappMode, setWhatsappMode] = useState(() => localStorage.getItem('settings_whatsappMode') || 'app');
 
   // --- UI state ---
   const [alert, setAlert] = useState({ msg: '', type: 'success' });
@@ -2555,7 +2573,8 @@ function SettingsPage() {
                   onChange={e => setWhatsappMode(e.target.value)} 
                   className={selectCls}
                 >
-                  <option value="web">Direct WhatsApp Web (web.whatsapp.com) - Best for Desktop</option>
+                  <option value="app">Direct Desktop App (whatsapp://) - Launch Desktop App</option>
+                  <option value="web">Direct WhatsApp Web (web.whatsapp.com) - Best for Browser CRM</option>
                   <option value="api">Standard API Redirect (api.whatsapp.com)</option>
                   <option value="wa">Shortened URL Redirect (wa.me) - Mobile Friendly</option>
                 </select>
