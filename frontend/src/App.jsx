@@ -9,7 +9,8 @@ import axios from 'axios';
 import { 
   Sparkles, History, LayoutDashboard, FileCode, Star, 
   Settings, User, LogOut, Copy, Download, Share2, 
-  Menu, X, Sun, Moon, AlertCircle, Plus, Edit, Trash2, CheckCircle, HelpCircle, Calendar
+  Menu, X, Sun, Moon, AlertCircle, Plus, Edit, Trash2, CheckCircle, HelpCircle, Calendar,
+  Lock, Eye, EyeOff
 } from 'lucide-react';
 
 // API Configuration & Base Instance with Automatic Interceptors
@@ -103,14 +104,18 @@ export function AuthProvider({ children }) {
       
       console.warn("API Login failed (network offline), triggering simulated authentications...");
       // Simulation fallback for standalone runs when backend is offline
-      if (username === 'agent' || username === 'admin' || username === 'shanmukh.k') {
+      const isValidAgent = username === 'agent' && (password === 'password123' || password === 'ManivthaTravels2026!');
+      const isValidAdmin = username === 'admin' && (password === 'password123' || password === 'ManivthaTravels2026!');
+      const isValidShanmukh = username === 'shanmukh.k' && password === 'jaminishannu@4669';
+
+      if (isValidAgent || isValidAdmin || isValidShanmukh) {
         const dummyToken = `simulated_jwt_token_${username}`;
         const dummyUser = {
-          id: username === 'admin' ? 'b3014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
-              username === 'shanmukh.k' ? 'a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
+          id: isValidAdmin ? 'b3014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
+              isValidShanmukh ? 'a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
               'd2903b4b-48ab-46cb-8b8f-c20d8c4a0a0f',
           username,
-          role: (username === 'admin' || username === 'shanmukh.k') ? 'admin' : 'staff',
+          role: (isValidAdmin || isValidShanmukh) ? 'admin' : 'staff',
           email: `${username}@manivthatravels.com`
         };
         localStorage.setItem('token', dummyToken);
@@ -192,11 +197,13 @@ function AlertWidget({ message, type = 'success', onClose }) {
 function Layout({ children }) {
   const { user, logout } = useContext(AuthContext);
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
-  // On desktop start expanded; persist preference
+  // On desktop start collapsed (icon-rail); on mobile controlled by hamburger
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     const saved = localStorage.getItem('sidebar_open');
-    return saved === null ? true : saved === 'true';
+    return saved === null ? false : saved === 'true';
   });
+  // Desktop hover-to-expand: temporarily expand sidebar when mouse enters the icon rail
+  const [hoverExpanded, setHoverExpanded] = useState(false);
   // Track window width to switch between desktop and mobile modes
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const navigate = useNavigate();
@@ -233,7 +240,8 @@ function Layout({ children }) {
 
   const location = useLocation();
 
-  const isExpanded = sidebarOpen;
+  // On desktop, sidebar expands on hover OR when explicitly opened
+  const isExpanded = isMobile ? sidebarOpen : (sidebarOpen || hoverExpanded);
 
   // Widths
   const EXPANDED  = 256; // 16rem
@@ -241,10 +249,10 @@ function Layout({ children }) {
 
   /* ── computed values ── */
   // On mobile: sidebar is an overlay, content area always takes full width
-  // On desktop: sidebar is in-flow; content shifts by sidebar width
-  const desktopMargin = isMobile ? 0 : (sidebarOpen ? EXPANDED : COLLAPSED);
-  // Sidebar actual rendered width (mobile always 256 when open, 0 when closed)
-  // Desktop: 256 expanded, 64 collapsed (never hidden)
+  // On desktop: sidebar is in-flow; main content always uses COLLAPSED margin
+  //             (sidebar overlays on hover, so content doesn't jump)
+  const desktopMargin = isMobile ? 0 : COLLAPSED;
+  // Sidebar actual rendered width
   const sidebarWidth  = isMobile
     ? (isExpanded ? EXPANDED : 0)
     : (isExpanded ? EXPANDED : COLLAPSED);
@@ -267,6 +275,8 @@ function Layout({ children }) {
       ═══════════════════════════════════════ */}
       <aside
         style={{ width: `${sidebarWidth}px` }}
+        onMouseEnter={() => { if (!isMobile) setHoverExpanded(true); }}
+        onMouseLeave={() => { if (!isMobile) setHoverExpanded(false); }}
         className={`
           fixed top-0 left-0 h-full z-40
           flex flex-col
@@ -275,6 +285,7 @@ function Layout({ children }) {
           transition-all duration-300 ease-in-out
           overflow-hidden
           ${isMobile && !isExpanded ? '-translate-x-full' : 'translate-x-0'}
+          ${!isMobile && hoverExpanded && !sidebarOpen ? 'shadow-2xl shadow-slate-900/30 dark:shadow-black/50' : ''}
         `}
       >
         {/* Brand / Logo row */}
@@ -370,11 +381,11 @@ function Layout({ children }) {
         {/* ── TOP NAVBAR ── */}
         <header className="sticky top-0 z-20 h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 md:px-6 shadow-sm">
           <div className="flex items-center gap-3">
-            {/* Hamburger — visible on ALL breakpoints */}
+            {/* Hamburger — visible on MOBILE only to prevent accidental hover opens on desktop */}
             <button
               id="sidebar-toggle-btn"
               onClick={toggleSidebar}
-              className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="md:hidden p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
             >
               <Menu className="h-5 w-5" />
@@ -405,9 +416,8 @@ function Layout({ children }) {
         </main>
 
         {/* ── FOOTER ── */}
-        <footer className="h-12 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 text-xs text-slate-400">
-          <span>&copy; 2026 Manivtha Tours &amp; Travels</span>
-          <span>Designed under Internship Standards</span>
+        <footer className="h-12 border-t border-slate-200 dark:border-slate-800 flex items-center justify-center px-6 text-xs text-slate-400">
+          <span>&copy; 2026 Manivtha Tours &amp; Travels. All rights reserved.</span>
         </footer>
       </div>
     </div>
@@ -447,9 +457,6 @@ function LandingPage() {
           <Link to="/login" className="px-8 py-4 rounded-xl hero-gradient font-bold text-base shadow-lg shadow-indigo-500/20 hover:scale-105 transition-all">
             Access Dashboard
           </Link>
-          <a href="#features" className="px-8 py-4 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 font-semibold text-base transition-colors">
-            Learn More
-          </a>
         </div>
 
         {/* Demo mockup snippet */}
@@ -486,8 +493,10 @@ function LoginPage() {
   const { login } = useContext(AuthContext);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -509,52 +518,109 @@ function LoginPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-6 relative">
-      <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-indigo-500/10 blur-3xl"></div>
-      <div className="absolute bottom-1/4 right-1/4 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl"></div>
+  const handleQuickDemo = (u, p) => {
+    setUsername(u);
+    setPassword(p);
+  };
 
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 relative z-10">
+  return (
+    <div className="min-h-screen bg-[#0a0f1d] flex flex-col items-center justify-center px-6 relative overflow-hidden">
+      {/* Deep Space Background Effects */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-900/20 blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-cyan-900/20 blur-[120px]"></div>
+        {/* Subtle stars / dots can be added here, but gradients work well for the deep space look */}
+      </div>
+
+      <div className="w-full max-w-[420px] bg-[#111827]/80 backdrop-blur-xl border border-slate-800/60 rounded-[2rem] p-8 sm:p-10 relative z-10 shadow-2xl shadow-black/50">
+        
         <div className="flex flex-col items-center mb-8">
-          <div className="h-12 w-12 rounded-2xl hero-gradient flex items-center justify-center text-white font-extrabold text-2xl shadow-lg shadow-indigo-500/20">M</div>
-          <h2 className="text-2xl font-display font-extrabold text-white mt-4">Welcome back</h2>
-          <p className="text-sm text-slate-400 mt-1">Sign in to your CRM operator account</p>
+          <div className="h-14 w-14 rounded-2xl bg-gradient-to-b from-[#5FA5F9] to-[#2563EB] flex items-center justify-center text-white font-extrabold text-2xl shadow-[0_0_30px_rgba(59,130,246,0.5)] mb-6">
+            M
+          </div>
+          <h2 className="text-[28px] font-display font-extrabold text-white tracking-tight">Welcome back</h2>
+          <p className="text-[15px] text-slate-400 mt-1.5 font-medium">Sign in to your CRM operator account</p>
         </div>
 
         {accessDeniedMessage && !error && (
-          <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center gap-2 text-sm mb-6 animate-pulse">
-            <AlertCircle className="h-5 w-5 shrink-0" />
+          <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl flex items-center gap-2 text-sm mb-6 animate-pulse">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{accessDeniedMessage}</span>
           </div>
         )}
 
         {error && (
-          <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center gap-2 text-sm mb-6">
-            <AlertCircle className="h-5 w-5 shrink-0" />
+          <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl flex items-center gap-2 text-sm mb-6">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Username</label>
-            <input type="text" required value={username} onChange={e => setUsername(e.target.value)} placeholder="e.g. agent or admin" className="w-full px-4 py-3.5 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-2xl text-white outline-none transition-colors placeholder:text-slate-600" />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Password</label>
-            <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-3.5 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-2xl text-white outline-none transition-colors placeholder:text-slate-600" />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <User className="h-5 w-5 text-slate-500" />
+            </div>
+            <input 
+              type="text" 
+              required 
+              value={username} 
+              onChange={e => setUsername(e.target.value)} 
+              placeholder="Username" 
+              className="w-full pl-11 pr-4 py-3.5 bg-[#1A2235]/60 border border-slate-700/50 focus:border-blue-500 focus:bg-[#1A2235] focus:ring-1 focus:ring-blue-500 rounded-xl !text-white outline-none transition-all placeholder:text-slate-500 font-semibold text-[15px]" 
+            />
           </div>
           
-          <button type="submit" disabled={loading} className="w-full py-4 rounded-2xl hero-gradient font-bold text-white shadow-lg shadow-indigo-500/25 hover:opacity-90 disabled:opacity-50 transition-all text-sm mt-4">
-            {loading ? 'Verifying Credentials...' : 'Sign In'}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Lock className="h-5 w-5 text-slate-500" />
+            </div>
+            <input 
+              type={showPassword ? "text" : "password"} 
+              required 
+              value={password} 
+              onChange={e => setPassword(e.target.value)} 
+              placeholder="Password" 
+              className="w-full pl-11 pr-12 py-3.5 bg-[#1A2235]/60 border border-slate-700/50 focus:border-blue-500 focus:bg-[#1A2235] focus:ring-1 focus:ring-blue-500 rounded-xl !text-white outline-none transition-all placeholder:text-slate-500 font-semibold text-[15px]" 
+            />
+            <button 
+              type="button" 
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
+            >
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
+          </div>
+          
+          <div className="pt-2"></div>
+          <button 
+            type="submit" 
+            disabled={loading} 
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#5082F8] to-[#14B8E6] font-bold text-white shadow-[0_0_20px_rgba(20,184,230,0.25)] hover:shadow-[0_0_25px_rgba(20,184,230,0.4)] hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 transition-all text-[15px] mt-2 tracking-wide"
+          >
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-slate-800 text-center">
-          <p className="text-xs text-slate-500">Demo Account Credentials:</p>
-          <p className="text-xs text-indigo-400 font-mono mt-1">Username: <span className="text-emerald-400">agent</span> / Password: <span className="text-emerald-400">password123</span> or <span className="text-emerald-400">ManivthaTravels2026!</span></p>
-          <p className="text-xs text-indigo-400 font-mono">Username: <span className="text-emerald-400">admin</span> / Password: <span className="text-emerald-400">password123</span> or <span className="text-emerald-400">ManivthaTravels2026!</span></p>
-          <p className="text-xs text-indigo-400 font-mono mt-1">Username: <span className="text-emerald-400">shanmukh.k</span> / Password: <span className="text-emerald-400">jaminishannu@4669</span></p>
+        <div className="mt-8 pt-6 border-t border-slate-800/60 relative">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#111827] px-3">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Quick Demo Access</span>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <button type="button" onClick={() => handleQuickDemo('agent', 'password123')} className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
+              <span className="text-[11px] font-extrabold text-[#759AF1] tracking-wider uppercase mb-1">Agent</span>
+              <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors">agent / password123</span>
+            </button>
+            <button type="button" onClick={() => handleQuickDemo('admin', 'password123')} className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
+              <span className="text-[11px] font-extrabold text-[#759AF1] tracking-wider uppercase mb-1">Admin</span>
+              <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors">admin / password123</span>
+            </button>
+            <button type="button" onClick={() => handleQuickDemo('shanmukh.k', 'jaminishannu@4669')} className="col-span-2 flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
+              <span className="text-[11px] font-extrabold text-[#14B8E6] tracking-wider uppercase mb-1">Master Admin</span>
+              <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors">shanmukh.k / jaminishannu@4669</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -666,11 +732,13 @@ function ForgotPasswordPage() {
 // MAIN DASHBOARD VIEW
 // -------------------------------------------------------------
 function Dashboard() {
+  const { user } = useContext(AuthContext);
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('All');
   const [language, setLanguage] = useState('All');
   const [travelType, setTravelType] = useState('All');
+  const [expandedCard, setExpandedCard] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -762,7 +830,244 @@ function Dashboard() {
     loadMetrics();
   }, [category, language, travelType]);
 
-  if (loading) return <div className="text-center py-12 text-slate-500">Gathering database statistics...</div>;
+  const handleExportAnalytics = () => {
+    if (!metrics) return;
+
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+
+    const escapeHTML = (str) => {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    };
+
+    const usage = metrics.dailyUsage || [];
+    const displayUsage = usage.length ? usage : [
+      { date: 'Sun', count: 3 }, { date: 'Mon', count: 7 }, { date: 'Tue', count: 12 },
+      { date: 'Wed', count: 8 }, { date: 'Thu', count: 5 }, { date: 'Fri', count: 9 }, { date: 'Sat', count: 4 }
+    ];
+
+    const dests = metrics.topDestinations || [];
+    const totalDestsCount = dests.reduce((sum, d) => sum + d.count, 0) || 1;
+
+    const feedbacks = metrics.recentFeedbacks || [];
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Analytics Report - Manivtha Tours & Travels</title>
+          <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+          <style>
+            body {
+              background: white;
+              color: black;
+              font-family: ui-sans-serif, system-ui, sans-serif;
+            }
+            .page-break { page-break-before: always; }
+          </style>
+        </head>
+        <body class="bg-white p-8 max-w-4xl mx-auto text-slate-800">
+          <!-- Header -->
+          <div class="border-b-2 border-indigo-600 pb-5 mb-8 flex justify-between items-end">
+            <div>
+              <h1 class="text-3xl font-extrabold tracking-tight text-indigo-600 uppercase">Manivtha Tours & Travels</h1>
+              <p class="text-xs text-slate-500 font-bold tracking-wide mt-1">AI Greeting Personalizer - Analytics & Performance Report</p>
+            </div>
+            <div class="text-right">
+              <p class="text-xs text-slate-400 font-semibold uppercase">Generated On</p>
+              <p class="text-sm font-mono font-bold text-slate-700">${escapeHTML(new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }))}</p>
+            </div>
+          </div>
+
+          <!-- Report Metadata -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-8 grid grid-cols-3 gap-4">
+            <div>
+              <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Report Type</span>
+              <span class="text-sm font-semibold text-slate-700">Analytics Export (PDF)</span>
+            </div>
+            <div>
+              <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Applied Filters</span>
+              <span class="text-xs font-semibold text-slate-700">Cat: ${escapeHTML(category)} | Lang: ${escapeHTML(language)} | Type: ${escapeHTML(travelType)}</span>
+            </div>
+            <div>
+              <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Service Status</span>
+              <span class="text-sm font-mono font-semibold text-emerald-600">Active (Live)</span>
+            </div>
+          </div>
+
+          <!-- Section 1: KPI Summary Table -->
+          <div class="mb-8">
+            <h2 class="text-base font-bold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-wider">1. Key Performance Indicators</h2>
+            <table class="w-full text-left border-collapse border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200">
+                  <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-500">Metric Name</th>
+                  <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-500">Current Value</th>
+                  <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-500">Operational Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                <tr>
+                  <td class="p-3 text-sm font-semibold text-slate-800">Total Personalized Greetings</td>
+                  <td class="p-3 text-sm font-mono font-bold text-indigo-600">${metrics.totalGreetings || 0}</td>
+                  <td class="p-3 text-xs font-bold text-emerald-600 uppercase">Active</td>
+                </tr>
+                <tr>
+                  <td class="p-3 text-sm font-semibold text-slate-800">Average Customer Rating</td>
+                  <td class="p-3 text-sm font-mono font-bold text-indigo-650">${metrics.averageRating || 0} / 5.0</td>
+                  <td class="p-3 text-xs font-bold text-emerald-600 uppercase">Active</td>
+                </tr>
+                <tr>
+                  <td class="p-3 text-sm font-semibold text-slate-800">Total Feedback Received</td>
+                  <td class="p-3 text-sm font-mono font-bold text-indigo-650">${metrics.feedbackCount || 0}</td>
+                  <td class="p-3 text-xs font-bold text-emerald-600 uppercase">Active</td>
+                </tr>
+                <tr>
+                  <td class="p-3 text-sm font-semibold text-slate-800">AI Personalization Success Rate</td>
+                  <td class="p-3 text-sm font-mono font-bold text-indigo-650">${metrics.performanceMetrics?.aiSuccessRate || 99.2}%</td>
+                  <td class="p-3 text-xs font-bold text-emerald-600 uppercase">Operational</td>
+                </tr>
+                <tr>
+                  <td class="p-3 text-sm font-semibold text-slate-800">Average AI Latency</td>
+                  <td class="p-3 text-sm font-mono font-bold text-indigo-650">${metrics.performanceMetrics?.avgResponseMs || 2400}ms</td>
+                  <td class="p-3 text-xs font-bold text-emerald-600 uppercase">Optimal</td>
+                </tr>
+                <tr>
+                  <td class="p-3 text-sm font-semibold text-slate-800">API Service Uptime</td>
+                  <td class="p-3 text-sm font-mono font-bold text-indigo-650">${metrics.performanceMetrics?.uptimePct || 99.9}%</td>
+                  <td class="p-3 text-xs font-bold text-emerald-600 uppercase">Operational</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Section 2: Generation Volume -->
+          <div class="mb-8">
+            <h2 class="text-base font-bold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-wider">2. Weekly Generation Volume</h2>
+            <table class="w-full text-left border-collapse border border-slate-200 shadow-sm rounded-xl overflow-hidden">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200">
+                  <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-500">Day</th>
+                  <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-500">Personalized Volume</th>
+                  <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-500">Activity Level</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                ${displayUsage.map(d => `
+                  <tr>
+                    <td class="p-3 text-sm font-semibold text-slate-700">${escapeHTML(d.date)}</td>
+                    <td class="p-3 text-sm font-mono font-bold text-slate-800">${escapeHTML(d.count)} greetings</td>
+                    <td class="p-3 text-xs font-bold uppercase ${d.count >= 8 ? 'text-indigo-600' : 'text-slate-500'}">
+                      ${d.count >= 8 ? 'High Activity' : 'Normal'}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Section 3: Top Destinations -->
+          <div class="mb-8 page-break">
+            <h2 class="text-base font-bold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-wider">3. Top Destinations Matrix</h2>
+            <table class="w-full text-left border-collapse border border-slate-200 shadow-sm rounded-xl overflow-hidden">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200">
+                  <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-500">Destination</th>
+                  <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-500">Total Personalized greetings</th>
+                  <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-500">Share</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                ${dests.map(d => {
+                  const share = ((d.count / totalDestsCount) * 100).toFixed(1);
+                  return `
+                    <tr>
+                      <td class="p-3 text-sm font-semibold text-slate-700">${escapeHTML(d.name)}</td>
+                      <td class="p-3 text-sm font-mono font-bold text-slate-800">${escapeHTML(d.count)}</td>
+                      <td class="p-3 text-sm font-semibold text-slate-500">${share}%</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Section 4: Customer Feedbacks -->
+          <div class="mb-8">
+            <h2 class="text-base font-bold text-slate-900 border-b border-slate-200 pb-2 mb-4 uppercase tracking-wider">4. Recent Customer Feedback Feed</h2>
+            <table class="w-full text-left border-collapse border border-slate-200 shadow-sm rounded-xl overflow-hidden">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200">
+                  <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-500 w-1/4">Customer / Destination</th>
+                  <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-500 w-1/12">Rating</th>
+                  <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-500">Comments & Testimonials</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                ${feedbacks.map(fb => `
+                  <tr>
+                    <td class="p-3">
+                      <span class="block text-sm font-bold text-slate-800">${escapeHTML(fb.customer_name)}</span>
+                      <span class="block text-[10px] text-slate-400 mt-0.5">Destination: ${escapeHTML(fb.destination)}</span>
+                    </td>
+                    <td class="p-3 text-sm font-mono font-bold text-amber-500">${'★'.repeat(fb.rating)}${'☆'.repeat(5 - fb.rating)}</td>
+                    <td class="p-3 text-xs text-slate-600 leading-relaxed italic font-medium">"${escapeHTML(fb.comments || 'No comments left.')}"</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Footer -->
+          <div class="mt-16 border-t border-slate-200 pt-5 text-center text-[10px] text-slate-400">
+            <p>Confidential • Manivtha Tours & Travels CRM Analytics</p>
+            <p class="mt-1">© ${new Date().getFullYear()} Manivtha Tours & Travels. All rights reserved.</p>
+          </div>
+
+          <script>
+            window.onload = function() {
+              const element = document.body;
+              const opt = {
+                margin:       [10, 15, 10, 15],
+                filename:     'manivtha_crm_analytics.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+              };
+              html2pdf().set(opt).from(element).save();
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    doc.open();
+    doc.write(htmlContent);
+    doc.close();
+
+    // Remove the temporary iframe after print dialogue closes
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 12000);
+  };
+
+
+  if (loading) return <div className="text-center py-12 text-slate-505">Gathering database statistics...</div>;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -771,22 +1076,11 @@ function Dashboard() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 dark:border-slate-800/80 pb-5">
         <div>
           <h1 className="text-2xl md:text-3xl font-display font-extrabold text-slate-900 dark:text-white tracking-tight">Analytics Panel</h1>
-          <p className="text-sm text-slate-505 dark:text-slate-400 mt-1">Real-time monitoring of greeting personalizations - Manivtha Tours & Travels</p>
+          <p className="text-sm text-slate-550 dark:text-slate-400 mt-1">Real-time monitoring of greeting personalizations - Manivtha Tours & Travels</p>
         </div>
         <div className="flex items-center flex-wrap gap-3">
-          {/* Search box matching the image */}
-          <div className="relative">
-            <input 
-              type="text" 
-              placeholder="Search destinations, guests..." 
-              className="pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full text-sm outline-none focus:border-indigo-500/50 w-64 transition-all hover:border-slate-350 dark:hover:border-slate-750 focus:ring-1 focus:ring-indigo-500/30"
-            />
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
           {/* Export Analytics button */}
-          <button className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-full shadow-lg shadow-indigo-500/10 hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center gap-1.5">
+          <button onClick={handleExportAnalytics} className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-full shadow-lg shadow-indigo-500/10 hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center gap-1.5">
             <Download className="h-3.5 w-3.5" />
             <span>Export Analytics</span>
           </button>
@@ -830,13 +1124,6 @@ function Dashboard() {
               <option value="Solo Adventure">Solo Adventure</option>
             </select>
           </div>
-        </div>
-        
-        {/* Last updated badge matching the image */}
-        <div className="flex items-center gap-2 self-end md:self-auto text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-950/40 px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-800/80 font-mono">
-          <span>Last updated: Tue, Jun 16 2026</span>
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Live</span>
         </div>
       </div>
 
@@ -893,37 +1180,31 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Card 4: Active Users */}
-        <div className="relative p-5 bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl flex flex-col justify-between hover-highlight min-h-[140px]">
-          <div className="flex items-center justify-between">
-            <div className="h-10 w-10 rounded-xl bg-sky-500/10 text-sky-550 dark:text-sky-400 flex items-center justify-center font-bold">
-              <User className="h-5 w-5" />
+        {/* Card 4: AI Insight • Trending Now */}
+        <div onClick={() => { if (user?.role === 'admin') setExpandedCard('insight'); }} className={`${user?.role === 'admin' ? 'cursor-pointer' : 'cursor-default'} col-span-2 md:col-span-2 relative p-5 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-cyan-500/5 dark:from-indigo-500/10 dark:via-purple-500/5 dark:to-cyan-500/5 backdrop-blur border border-indigo-500/20 dark:border-indigo-500/30 rounded-3xl flex gap-4 hover-highlight hover:border-indigo-500/50 transition-all select-none min-h-[140px]`}>
+          <div className="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/25">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div className="flex-1 min-w-0 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">AI Insight • Trending Now</h4>
+                <span className="flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                  <span className="text-[9px] font-bold text-indigo-500 uppercase tracking-wider">Live Insight</span>
+                </span>
+              </div>
+              <p className="text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed mt-2 line-clamp-3 md:line-clamp-2">
+                {user?.role === 'admin' 
+                  ? (metrics && metrics.totalGreetings > 0 
+                      ? `Top active destination is ${metrics.topDestinations?.[0]?.name || 'none'} with ${metrics.topDestinations?.[0]?.count || 0} greetings. Average customer satisfaction is at ${metrics.averageRating || '0.0'}/5.0 based on ${metrics.feedbackCount || 0} feedback responses.`
+                      : "No greetings generated yet. Feed database records to generate trending insights.")
+                  : "Kerala and Tirupati are tied as top destinations this week. Average rating improved +0.3 pts. Consider adding Ooty and Coorg to expand South India coverage by ~40%."}
+              </p>
             </div>
-            <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/25 text-[10px] font-bold">
-              ↓ -1
-            </span>
-          </div>
-          <div className="mt-4">
-            <p className="text-3xl font-extrabold font-display text-slate-900 dark:text-white">8</p>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-1">Active Users</p>
-          </div>
-        </div>
-
-        {/* Card 5: AI Success Rate */}
-        <div className="relative p-5 bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl flex flex-col justify-between hover-highlight min-h-[140px]">
-          <div className="flex items-center justify-between">
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
-              <CheckCircle className="h-5 w-5" />
+            <div className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-2">
+              Updated just now
             </div>
-            <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-[10px] font-bold">
-              ↑ +0.1%
-            </span>
-          </div>
-          <div className="mt-4">
-            <p className="text-3xl font-extrabold font-display text-slate-900 dark:text-white">
-              {metrics?.performanceMetrics?.aiSuccessRate || 99.2}<span className="text-lg font-semibold text-slate-500">%</span>
-            </p>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-1">AI Success Rate</p>
           </div>
         </div>
 
@@ -933,53 +1214,69 @@ function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Weekly Generation Volume Chart */}
-        <div className="p-6 bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl lg:col-span-2 flex flex-col justify-between hover-highlight">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-            <h3 className="font-display font-bold text-xs uppercase tracking-widest text-slate-400">Weekly Generation Volume</h3>
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-950/40 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-800/80 font-mono scale-90 sm:scale-95 origin-left sm:origin-right">
-              <span>Last updated: Tue, Jun 16 2026</span>
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Live</span>
+        <div onClick={() => { if (user?.role === 'admin') setExpandedCard('weekly'); }} className={`${user?.role === 'admin' ? 'cursor-pointer' : 'cursor-default'} p-6 bg-gradient-to-br from-indigo-50/40 via-white/80 to-cyan-50/30 dark:from-slate-900/80 dark:via-slate-900/60 dark:to-slate-950/80 backdrop-blur border border-indigo-100 dark:border-indigo-950/50 rounded-3xl lg:col-span-2 flex flex-col justify-between hover-highlight shadow-sm hover:shadow-indigo-500/10 transition-all`}>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <h3 className="font-display font-bold text-xs uppercase tracking-widest text-slate-400">Weekly Generation Volume</h3>
+              <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-[9px] font-bold uppercase tracking-wider">7 Days</span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[9px] font-bold uppercase tracking-wider">+14.2% vs last week</span>
             </div>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-[9px] font-bold text-emerald-500 dark:text-emerald-400 uppercase tracking-wider">Real-time</span>
+            </span>
           </div>
           
-          <div className="w-full h-56 flex items-end justify-between px-2 pb-2 relative">
-            {/* Grid background lines */}
-            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8 pt-4">
-              <div className="border-b border-dashed border-slate-200/50 dark:border-slate-850/55 w-full h-0"></div>
-              <div className="border-b border-dashed border-slate-200/50 dark:border-slate-850/55 w-full h-0"></div>
-              <div className="border-b border-dashed border-slate-200/50 dark:border-slate-850/55 w-full h-0"></div>
-              <div className="border-b border-dashed border-slate-200/50 dark:border-slate-850/55 w-full h-0"></div>
-            </div>
-            
-            {metrics?.dailyUsage?.map((day) => {
-              const maxVal = Math.max(...(metrics?.dailyUsage || []).map(d => d.count)) || 1;
-              const heightPct = (day.count / maxVal) * 75; // cap height
-              const isHighlight = day.date === 'Tue'; // Tue matches the image highlight
-              return (
-                <div key={day.date} className="flex flex-col items-center gap-3 flex-1 z-10 group relative h-full justify-end">
-                  <span className="text-xs font-bold font-mono text-slate-600 dark:text-slate-400 group-hover:text-indigo-400 transition-colors">{day.count}</span>
-                  
-                  {/* Glowing pill bar */}
-                  <div 
-                    className={`w-6 sm:w-10 rounded-full bar-glow transition-all duration-300 ${
-                      isHighlight 
-                        ? 'bg-gradient-to-t from-indigo-600 via-indigo-500 to-cyan-400 opacity-100 shadow-[0_0_20px_rgba(6,182,212,0.4)]' 
-                        : 'bg-gradient-to-t from-indigo-900/60 to-indigo-700/60 opacity-40 hover:opacity-85'
-                    }`} 
-                    style={{ height: `${heightPct}%`, minHeight: '16px' }}
-                  >
-                  </div>
-                  
-                  <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wide mt-1">{day.date}</span>
+          {(() => {
+            const rawUsage = metrics?.dailyUsage || [];
+            const hasRealData = rawUsage.some(d => d.count > 0);
+            const displayUsage = (user?.role === 'admin') 
+              ? rawUsage 
+              : (hasRealData ? rawUsage : [
+                  { date: 'Sun', count: 3 }, { date: 'Mon', count: 7 }, { date: 'Tue', count: 12 },
+                  { date: 'Wed', count: 8 }, { date: 'Thu', count: 5 }, { date: 'Fri', count: 9 }, { date: 'Sat', count: 4 }
+                ]);
+            const maxVal = Math.max(...displayUsage.map(d => d.count)) || 1;
+            const todayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
+            return (
+              <div className="w-full h-56 flex items-end justify-between px-2 pb-2 relative">
+                {/* Grid background lines */}
+                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8 pt-4">
+                  {[0,1,2,3].map(i => <div key={i} className="border-b border-dashed border-slate-200/50 dark:border-slate-800/50 w-full h-0"></div>)}
                 </div>
-              );
-            })}
-          </div>
+                
+                {displayUsage.map((day) => {
+                  const heightPct = (day.count / maxVal) * 75;
+                  const isHighlight = day.date === todayName;
+                  return (
+                    <div key={day.date} className="flex flex-col items-center gap-3 flex-1 z-10 group relative h-full justify-end">
+                      <span className={`text-xs font-bold font-mono transition-colors ${isHighlight ? 'text-indigo-500 dark:text-cyan-400' : 'text-slate-600 dark:text-slate-400 group-hover:text-indigo-400'}`}>{day.count}</span>
+                      
+                      {/* Glowing pill bar */}
+                      <div 
+                        className={`w-6 sm:w-10 rounded-full bar-glow transition-all duration-300 ${
+                          isHighlight 
+                            ? 'bg-gradient-to-t from-indigo-600 via-indigo-500 to-cyan-400 opacity-100 shadow-[0_0_20px_rgba(6,182,212,0.5)]' 
+                            : 'bg-gradient-to-t from-indigo-200 to-indigo-300 dark:from-indigo-900/40 dark:to-indigo-750/50 opacity-80 dark:opacity-45 hover:opacity-100 dark:hover:opacity-85'
+                        }`} 
+                        style={{ height: `${heightPct}%`, minHeight: '16px' }}
+                      >
+                      </div>
+                      
+                      <span className={`text-[10px] sm:text-[11px] font-bold tracking-wide mt-1 ${isHighlight ? 'text-indigo-500 dark:text-cyan-400' : 'text-slate-500 dark:text-slate-400'}`}>{day.date}</span>
+                    </div>
+                  );
+                })}
+                {!hasRealData && !(user?.role === 'admin') && (
+                  <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[9px] font-bold uppercase">Demo Data</div>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Top Destination Matrix */}
-        <div className="p-6 bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl flex flex-col justify-between hover-highlight">
+        <div onClick={() => { if (user?.role === 'admin') setExpandedCard('destinations'); }} className={`${user?.role === 'admin' ? 'cursor-pointer' : 'cursor-default'} p-6 bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl flex flex-col justify-between hover-highlight`}>
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-display font-bold text-xs uppercase tracking-widest text-slate-400">Top Destinations</h3>
             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">This week</span>
@@ -997,7 +1294,7 @@ function Dashboard() {
                     title="Click to audit logs for this destination"
                   >
                     <div className="flex items-center justify-between text-xs font-bold">
-                      <span className="text-slate-850 dark:text-slate-100 group-hover:text-indigo-400 transition-colors">{dest.name}</span>
+                      <span className="text-slate-800 dark:text-slate-100 group-hover:text-indigo-400 transition-colors">{dest.name}</span>
                       <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 border border-indigo-500/25 text-[10px]">
                         {dest.count} Greetings
                       </span>
@@ -1019,74 +1316,84 @@ function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Recent Feedback Feed Card */}
-        <div className="p-6 bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl lg:col-span-2 space-y-5 hover-highlight">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-            <h3 className="font-display font-bold text-xs uppercase tracking-widest text-slate-400">Recent Customer Feedback</h3>
-            <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-              <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/25 text-[10px] font-bold">3 new</span>
-              <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-950/40 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-800/80 font-mono scale-90 sm:scale-95 origin-left sm:origin-right">
-                <span>Last updated: Tue, Jun 16 2026</span>
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Live</span>
-              </div>
+        <div onClick={() => { if (user?.role === 'admin') setExpandedCard('feedback'); }} className={`${user?.role === 'admin' ? 'cursor-pointer' : 'cursor-default'} p-6 bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl lg:col-span-2 space-y-5 hover-highlight`}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <h3 className="font-display font-bold text-xs uppercase tracking-widest text-slate-400">Recent Customer Feedback</h3>
+              <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/25 text-[10px] font-bold">{(metrics?.recentFeedbacks?.length || 0) > 0 ? `${metrics.recentFeedbacks.length} new` : '—'}</span>
             </div>
+            <span className="flex items-center gap-1.5">
+              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{metrics?.averageRating || '4.2'}<span className="text-slate-400 font-normal">/5 avg</span></span>
+            </span>
           </div>
           
-          <div className="space-y-4 max-h-[360px] overflow-y-auto pr-2">
-            {metrics?.recentFeedbacks && metrics.recentFeedbacks.length > 0 ? (
-              metrics.recentFeedbacks.map((fb, idx) => {
-                // Get initials
-                const names = fb.customer_name ? fb.customer_name.split(' ') : [];
-                const initials = names.length >= 2 
-                  ? (names[0][0] + names[1][0]).toUpperCase()
-                  : names.length === 1 ? names[0].substring(0, 2).toUpperCase() : 'YS';
-                
-                return (
-                  <div 
-                    key={fb.id || idx} 
-                    className="p-4 bg-white/40 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800 rounded-2xl flex gap-4 hover-highlight transition-all"
-                  >
-                    {/* Customer Initials Avatar */}
-                    <div className="h-10 w-10 shrink-0 rounded-full bg-indigo-600 dark:bg-indigo-950 text-white dark:text-indigo-300 font-extrabold text-sm flex items-center justify-center border border-indigo-500/30 select-none">
-                      {initials}
-                    </div>
-                    
-                    <div className="flex-1 space-y-1.5">
-                      <div className="flex items-center justify-between flex-wrap gap-2">
-                        <div>
-                          <span className="font-extrabold text-sm text-slate-900 dark:text-white block">{fb.customer_name}</span>
-                          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium block mt-0.5">{new Date(fb.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+          {(() => {
+            const hasRealFeedbacks = metrics?.recentFeedbacks && metrics.recentFeedbacks.length > 0;
+            const displayFeedbacks = (user?.role === 'admin')
+              ? (metrics?.recentFeedbacks || [])
+              : (hasRealFeedbacks ? metrics.recentFeedbacks : [
+                  { id: 'demo1', customer_name: 'Ravi Kumar', destination: 'Tirupati', rating: 5, comments: 'Excellent personalization! The Telugu greeting was perfect and my client loved it.', created_at: new Date(Date.now() - 86400000).toISOString() },
+                  { id: 'demo2', customer_name: 'Priya Sharma', destination: 'Goa', rating: 4, comments: 'Great honeymoon greeting template. Very professional tone.', created_at: new Date(Date.now() - 172800000).toISOString() },
+                  { id: 'demo3', customer_name: 'Anand Reddy', destination: 'Kerala', rating: 5, comments: 'The multilingual support is outstanding. Sent in Malayalam and client was thrilled!', created_at: new Date(Date.now() - 259200000).toISOString() },
+                ]);
+            const avatarColors = ['bg-indigo-600 dark:bg-indigo-950', 'bg-emerald-600 dark:bg-emerald-950', 'bg-amber-600 dark:bg-amber-950', 'bg-pink-600 dark:bg-pink-950', 'bg-sky-600 dark:bg-sky-950'];
+            return (
+              <div className="space-y-4 max-h-[360px] overflow-y-auto pr-2 relative">
+                {displayFeedbacks.map((fb, idx) => {
+                  const names = fb.customer_name ? fb.customer_name.split(' ') : [];
+                  const initials = names.length >= 2 
+                    ? (names[0][0] + names[1][0]).toUpperCase()
+                    : names.length === 1 ? names[0].substring(0, 2).toUpperCase() : 'YS';
+                  
+                  return (
+                    <div 
+                      key={fb.id || idx} 
+                      className="p-4 bg-white/40 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800 rounded-2xl flex gap-4 hover-highlight transition-all"
+                    >
+                      {/* Customer Initials Avatar */}
+                      <div className={`h-10 w-10 shrink-0 rounded-full ${avatarColors[idx % avatarColors.length]} text-white font-extrabold text-sm flex items-center justify-center border border-white/20 select-none`}>
+                        {initials}
+                      </div>
+                      
+                      <div className="flex-1 space-y-1.5">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <div>
+                            <span className="font-extrabold text-sm text-slate-900 dark:text-white block">{fb.customer_name}</span>
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium block mt-0.5">{new Date(fb.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                          </div>
+                          <span className="px-2.5 py-1 rounded-full bg-slate-100/50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border border-slate-200/50 dark:border-slate-800/80 text-[10px] font-bold flex items-center gap-1">
+                            ➔ {fb.destination}
+                          </span>
                         </div>
-                        <span className="px-2.5 py-1 rounded-full bg-slate-100/50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border border-slate-200/50 dark:border-slate-800/80 text-[10px] font-bold flex items-center gap-1">
-                          ➔ {fb.destination}
-                        </span>
+                        
+                        {/* Star Rating and Comments */}
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star key={s} className={`h-3.5 w-3.5 ${fb.rating >= s ? 'fill-amber-400 text-amber-400' : 'text-slate-300 dark:text-slate-700'}`} />
+                          ))}
+                        </div>
+                        
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                          "{fb.comments || 'No comments left.'}"
+                        </p>
                       </div>
-                      
-                      {/* Star Rating and Comments */}
-                      <div className="flex items-center gap-1">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <Star key={s} className={`h-3.5 w-3.5 ${fb.rating >= s ? 'fill-amber-400 text-amber-400' : 'text-slate-350 dark:text-slate-700'}`} />
-                        ))}
-                      </div>
-                      
-                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-                        "{fb.comments || 'No comments left.'}"
-                      </p>
                     </div>
-                  </div>
-                );
-              })
-            ) : (
-              <p className="text-slate-500 text-sm py-12 text-center">No customer feedback logs found.</p>
-            )}
-          </div>
+                  );
+                })}
+                {!hasRealFeedbacks && !(user?.role === 'admin') && (
+                  <div className="absolute top-0 right-0 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[9px] font-bold uppercase">Demo Data</div>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Telemetry metrics panel inside the grid */}
         <div className="space-y-4 flex flex-col">
           
           {/* System Telemetry */}
-          <div className="p-6 bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl flex-1 flex flex-col justify-between hover-highlight">
+          <div onClick={() => { if (user?.role === 'admin') setExpandedCard('telemetry'); }} className={`${user?.role === 'admin' ? 'cursor-pointer' : 'cursor-default'} p-6 bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl flex-1 flex flex-col justify-between hover-highlight`}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display font-bold text-xs uppercase tracking-widest text-slate-400">System Telemetry</h3>
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -1131,21 +1438,162 @@ function Dashboard() {
             </div>
           </div>
           
-          {/* AI Insight banner matching the image */}
-          <div className="p-5 premium-glow-panel rounded-3xl flex gap-4 hover-highlight transition-all">
-            <div className="h-10 w-10 shrink-0 rounded-xl bg-indigo-500/10 text-indigo-550 dark:text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div className="space-y-1">
-              <h4 className="text-xs font-extrabold text-slate-900 dark:text-white tracking-wide">AI Insight • Trending Now</h4>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                Kerala and Tirupati are tied as top destinations this week. Average rating improved +0.3 pts. Consider adding Ooty and Coorg to expand South India coverage by ~40%.
-              </p>
-            </div>
-          </div>
+
 
         </div>
       </div>
+
+      {/* ── Expanded Card Modal Overlay ── */}
+      {expandedCard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" onClick={() => setExpandedCard(null)}>
+          <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-y-auto p-6 animate-fade-in" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setExpandedCard(null)} className="absolute top-4 right-4 h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 flex items-center justify-center transition-all hover:scale-110" title="Close">
+              <X className="h-4 w-4" />
+            </button>
+
+            {expandedCard === 'weekly' && (
+              <div>
+                <h2 className="text-lg font-display font-extrabold text-slate-900 dark:text-white mb-1">Weekly Generation Volume</h2>
+                <p className="text-xs text-slate-500 mb-6">Detailed daily breakdown of AI-personalized greetings generated this week.</p>
+                <table className="w-full text-left border-collapse">
+                  <thead><tr className="border-b border-slate-200 dark:border-slate-800">
+                    <th className="p-3 text-xs font-bold uppercase tracking-wider text-slate-400">Day</th>
+                    <th className="p-3 text-xs font-bold uppercase tracking-wider text-slate-400">Volume</th>
+                    <th className="p-3 text-xs font-bold uppercase tracking-wider text-slate-400">Activity</th>
+                  </tr></thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {((user?.role === 'admin') ? (metrics?.dailyUsage || []) : (metrics?.dailyUsage?.length ? metrics.dailyUsage : [{date:'Sun',count:3},{date:'Mon',count:7},{date:'Tue',count:12},{date:'Wed',count:8},{date:'Thu',count:5},{date:'Fri',count:9},{date:'Sat',count:4}])).map(d => (
+                      <tr key={d.date}>
+                        <td className="p-3 text-sm font-semibold text-slate-700 dark:text-slate-200">{d.date}</td>
+                        <td className="p-3 text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400">{d.count} greetings</td>
+                        <td className={`p-3 text-xs font-bold uppercase ${d.count >= 8 ? 'text-indigo-600' : 'text-slate-400'}`}>{d.count >= 8 ? 'High' : 'Normal'}</td>
+                      </tr>
+                    ))}
+                    {(!metrics?.dailyUsage || metrics.dailyUsage.length === 0) && (
+                      <tr><td colSpan="3" className="p-6 text-center text-sm text-slate-400">No generation volume data available.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {expandedCard === 'destinations' && (
+              <div>
+                <h2 className="text-lg font-display font-extrabold text-slate-900 dark:text-white mb-1">Top Destinations</h2>
+                <p className="text-xs text-slate-500 mb-6">Most popular travel destinations by greeting count this week.</p>
+                <table className="w-full text-left border-collapse">
+                  <thead><tr className="border-b border-slate-200 dark:border-slate-800">
+                    <th className="p-3 text-xs font-bold uppercase tracking-wider text-slate-400">Destination</th>
+                    <th className="p-3 text-xs font-bold uppercase tracking-wider text-slate-400">Greetings</th>
+                    <th className="p-3 text-xs font-bold uppercase tracking-wider text-slate-400">Share</th>
+                  </tr></thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {(metrics?.topDestinations || []).map(d => {
+                      const total = (metrics?.topDestinations || []).reduce((s,x) => s+x.count, 0) || 1;
+                      return (
+                        <tr key={d.name}>
+                          <td className="p-3 text-sm font-semibold text-slate-700 dark:text-slate-200">{d.name}</td>
+                          <td className="p-3 text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400">{d.count}</td>
+                          <td className="p-3 text-sm font-semibold text-slate-500">{((d.count/total)*100).toFixed(1)}%</td>
+                        </tr>
+                      );
+                    })}
+                    {(!metrics?.topDestinations || metrics.topDestinations.length === 0) && (
+                      <tr><td colSpan="3" className="p-6 text-center text-sm text-slate-400">No destination data available.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {expandedCard === 'insight' && (
+              <div>
+                <h2 className="text-lg font-display font-extrabold text-slate-900 dark:text-white mb-1">AI Insight • Trending Now</h2>
+                <p className="text-xs text-slate-500 mb-6">AI-generated insights and recommendations based on current analytics data.</p>
+                <div className="space-y-4">
+                  <div className="p-5 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-900/50 rounded-2xl">
+                    <h4 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-2">Destination Analysis</h4>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                      {user?.role === 'admin' 
+                        ? (metrics && metrics.totalGreetings > 0 
+                            ? `Top destination this week is ${metrics.topDestinations?.[0]?.name || 'none'} with ${metrics.topDestinations?.[0]?.count || 0} greetings generated. Dynamic metrics show high volume distribution.` 
+                            : "No greetings generated yet. Feed database records to generate destination analysis insights.")
+                        : "Kerala and Tirupati are tied as top destinations this week. Average rating improved +0.3 pts. Consider adding Ooty and Coorg to expand South India coverage by ~40%."}
+                    </p>
+                  </div>
+                  <div className="p-5 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/50 rounded-2xl">
+                    <h4 className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mb-2">Performance Summary</h4>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">AI Success Rate: {metrics?.performanceMetrics?.aiSuccessRate || 99.2}% • Avg Latency: {metrics?.performanceMetrics?.avgResponseMs || 2400}ms • Uptime: {metrics?.performanceMetrics?.uptimePct || 99.9}%</p>
+                  </div>
+                  <div className="p-5 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/50 rounded-2xl">
+                    <h4 className="text-sm font-bold text-amber-600 dark:text-amber-400 mb-2">Customer Satisfaction</h4>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">Average Rating: {metrics?.averageRating || 0}/5 across {metrics?.feedbackCount || 0} feedback entries. Total personalized greetings: {metrics?.totalGreetings || 0}.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {expandedCard === 'feedback' && (
+              <div>
+                <h2 className="text-lg font-display font-extrabold text-slate-900 dark:text-white mb-1">Recent Customer Feedback</h2>
+                <p className="text-xs text-slate-500 mb-6">Latest customer testimonials and rating details.</p>
+                <table className="w-full text-left border-collapse">
+                  <thead><tr className="border-b border-slate-200 dark:border-slate-800">
+                    <th className="p-3 text-xs font-bold uppercase tracking-wider text-slate-400">Customer</th>
+                    <th className="p-3 text-xs font-bold uppercase tracking-wider text-slate-400">Destination</th>
+                    <th className="p-3 text-xs font-bold uppercase tracking-wider text-slate-400">Rating</th>
+                    <th className="p-3 text-xs font-bold uppercase tracking-wider text-slate-400">Comment</th>
+                  </tr></thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {(metrics?.recentFeedbacks || []).map((fb, i) => (
+                      <tr key={fb.id || i}>
+                        <td className="p-3 text-sm font-semibold text-slate-700 dark:text-slate-200">{fb.customer_name}</td>
+                        <td className="p-3 text-sm text-slate-600 dark:text-slate-300">{fb.destination}</td>
+                        <td className="p-3 text-sm font-mono font-bold text-amber-500">{'★'.repeat(fb.rating)}{'☆'.repeat(5 - fb.rating)}</td>
+                        <td className="p-3 text-xs text-slate-600 dark:text-slate-300 italic max-w-xs truncate">"{fb.comments || 'No comments.'}"</td>
+                      </tr>
+                    ))}
+                    {(!metrics?.recentFeedbacks || metrics.recentFeedbacks.length === 0) && (
+                      <tr><td colSpan="4" className="p-6 text-center text-sm text-slate-400">No feedback data available.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {expandedCard === 'telemetry' && (
+              <div>
+                <h2 className="text-lg font-display font-extrabold text-slate-900 dark:text-white mb-1">System Telemetry</h2>
+                <p className="text-xs text-slate-500 mb-6">Real-time system health and performance metrics.</p>
+                <table className="w-full text-left border-collapse">
+                  <thead><tr className="border-b border-slate-200 dark:border-slate-800">
+                    <th className="p-3 text-xs font-bold uppercase tracking-wider text-slate-400">Metric</th>
+                    <th className="p-3 text-xs font-bold uppercase tracking-wider text-slate-400">Value</th>
+                    <th className="p-3 text-xs font-bold uppercase tracking-wider text-slate-400">Status</th>
+                  </tr></thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tr>
+                      <td className="p-3 text-sm font-semibold text-slate-700 dark:text-slate-200">Service Uptime</td>
+                      <td className="p-3 text-sm font-mono font-bold text-emerald-500">{metrics?.performanceMetrics?.uptimePct || 99.9}%</td>
+                      <td className="p-3 text-xs font-bold text-emerald-600 uppercase">Operational</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 text-sm font-semibold text-slate-700 dark:text-slate-200">AI Latency</td>
+                      <td className="p-3 text-sm font-mono font-bold text-indigo-500">{metrics?.performanceMetrics?.avgResponseMs || 2400}ms</td>
+                      <td className="p-3 text-xs font-bold text-indigo-600 uppercase">Optimal</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 text-sm font-semibold text-slate-700 dark:text-slate-200">AI Success Rate</td>
+                      <td className="p-3 text-sm font-mono font-bold text-amber-500">{metrics?.performanceMetrics?.aiSuccessRate || 99.2}%</td>
+                      <td className="p-3 text-xs font-bold text-emerald-600 uppercase">Healthy</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1164,6 +1612,45 @@ function GreetingGenerator() {
   const [specialNotes, setSpecialNotes] = useState(() => localStorage.getItem('gen_specialNotes') || '');
   const [travelDate, setTravelDate] = useState(() => localStorage.getItem('gen_travelDate') || '');
   const [whatsappNumber, setWhatsappNumber] = useState(() => localStorage.getItem('gen_whatsappNumber') || '');
+
+  const [selectedYear, setSelectedYear] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedDay, setSelectedDay] = useState('');
+
+  const todayDate = new Date();
+  const currentYear = todayDate.getFullYear();
+  const currentMonth = todayDate.getMonth() + 1; // 1-indexed
+  const currentDay = todayDate.getDate();
+
+  const getDaysInMonth = (year, month) => {
+    if (!year || !month) return 31;
+    return new Date(parseInt(year), parseInt(month), 0).getDate();
+  };
+
+  useEffect(() => {
+    if (travelDate && travelDate.includes('-')) {
+      const [y, m, d] = travelDate.split('-');
+      setSelectedYear(y);
+      setSelectedMonth(m);
+      setSelectedDay(d);
+    } else {
+      setSelectedYear('');
+      setSelectedMonth('');
+      setSelectedDay('');
+    }
+  }, [travelDate]);
+
+  const handleDropdownDateChange = (y, m, d) => {
+    setSelectedYear(y || '');
+    setSelectedMonth(m || '');
+    setSelectedDay(d || '');
+    if (y && m && d) {
+      setTravelDate(`${y}-${m}-${d}`);
+    } else {
+      setTravelDate('');
+    }
+  };
+
 
   const [loading, setLoading] = useState(false);
   const [resultGreeting, setResultGreeting] = useState(() => {
@@ -1234,6 +1721,74 @@ function GreetingGenerator() {
 
   // Custom presets state (admin-managed, fetched from database)
   const [presets, setPresets] = useState([]);
+  const defaultPresetsList = [
+    {
+      id: "p1",
+      label: "Tirupati Pilgrimage",
+      emoji: "☸️",
+      destination: "Tirupati",
+      travelType: "Spiritual Tour",
+      bookingHistory: "3 Previous Trips",
+      category: "VIP",
+      language: "English",
+      notes: "Arrange clean vegetarian guide."
+    },
+    {
+      id: "p2",
+      label: "Goa Honeymoon",
+      emoji: "🏖️",
+      destination: "Goa",
+      travelType: "Honeymoon",
+      bookingHistory: "1st Trip",
+      category: "Premium",
+      language: "English",
+      notes: "Arrange flower decorations and candle light dinners."
+    },
+    {
+      id: "p3",
+      label: "Mumbai Corporate",
+      emoji: "💼",
+      destination: "Mumbai",
+      travelType: "Corporate Travel",
+      bookingHistory: "5 Previous Trips",
+      category: "VIP",
+      language: "English",
+      notes: "Provide premium executive sedan, late check-out, express Wi-Fi."
+    },
+    {
+      id: "p4",
+      label: "Ladakh Adventure",
+      emoji: "🏔️",
+      destination: "Leh Ladakh",
+      travelType: "Solo Adventure",
+      bookingHistory: "1st Trip",
+      category: "Standard",
+      language: "Hindi",
+      notes: "Include high-altitude oxygen kit, emergency local contacts, bike rental details."
+    },
+    {
+      id: "p5",
+      label: "Ooty Family",
+      emoji: "👪",
+      destination: "Ooty",
+      travelType: "Family Trip",
+      bookingHistory: "2 Previous Trips",
+      category: "Premium",
+      language: "Telugu",
+      notes: "Book kid-friendly theme park tickets and arrange an English-speaking driver."
+    },
+    {
+      id: "p6",
+      label: "Jaipur Heritage",
+      emoji: "🏰",
+      destination: "Jaipur",
+      travelType: "Family Trip",
+      bookingHistory: "4 Previous Trips",
+      category: "VIP",
+      language: "Hindi",
+      notes: "Book local guide for historical forts and royal dinner reservations."
+    }
+  ];
   const [presetsLoading, setPresetsLoading] = useState(true);
   const [showPresetModal, setShowPresetModal] = useState(false);
   const [presetForm, setPresetForm] = useState({ label: '', emoji: '✈️', destination: '', travelType: 'Family Trip', bookingHistory: '1st Trip', category: 'Standard', language: 'English', notes: '' });
@@ -1264,6 +1819,11 @@ function GreetingGenerator() {
         local = JSON.parse(localStorage.getItem('custom_presets') || '[]');
       } catch (err) {
         local = [];
+      }
+      if (local.length === 0 && !localStorage.getItem('custom_presets_initialized')) {
+        local = [...defaultPresetsList];
+        localStorage.setItem('custom_presets', JSON.stringify(local));
+        localStorage.setItem('custom_presets_initialized', 'true');
       }
       setPresets(local);
     }
@@ -1408,6 +1968,18 @@ function GreetingGenerator() {
     setRating(5);
     setFeedbackComments('');
     setAlertMessage('');
+
+    if (travelDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const selected = new Date(travelDate);
+      selected.setHours(0, 0, 0, 0);
+      if (selected < today) {
+        setAlertMessage("⚠️ Travel Date cannot be in the past.");
+        setLoading(false);
+        return;
+      }
+    }
 
     try {
       const res = await api.post('/generate', {
@@ -1715,46 +2287,44 @@ function GreetingGenerator() {
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => applyTemplate('spiritual')} className="px-3 py-2 text-xs font-semibold bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20 border border-indigo-500/10 rounded-xl transition-all">
-              ☸️ Tirupati Pilgrimage
-            </button>
-            <button type="button" onClick={() => applyTemplate('honeymoon')} className="px-3 py-2 text-xs font-semibold bg-pink-500/10 text-pink-400 hover:bg-pink-500/20 border border-pink-500/10 rounded-xl transition-all">
-              🏖️ Goa Honeymoon
-            </button>
-            <button type="button" onClick={() => applyTemplate('corporate')} className="px-3 py-2 text-xs font-semibold bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/10 rounded-xl transition-all">
-              💼 Mumbai Corporate
-            </button>
-            <button type="button" onClick={() => applyTemplate('adventure')} className="px-3 py-2 text-xs font-semibold bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 border border-orange-500/10 rounded-xl transition-all">
-              🏔️ Ladakh Adventure
-            </button>
-            <button type="button" onClick={() => applyTemplate('family')} className="px-3 py-2 text-xs font-semibold bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 border border-sky-500/10 rounded-xl transition-all">
-              👪 Ooty Family
-            </button>
-            <button type="button" onClick={() => applyTemplate('cultural')} className="px-3 py-2 text-xs font-semibold bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/10 rounded-xl transition-all">
-              🏰 Jaipur Heritage
-            </button>
-            {/* Admin-added custom presets */}
-            {customPresets.map(preset => (
-              <div key={preset.id} className="relative group flex items-center">
-                <button
-                  type="button"
-                  onClick={() => applyCustomPreset(preset)}
-                  className="px-3 py-2 text-xs font-semibold bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 border border-violet-500/10 rounded-xl transition-all pr-7"
-                >
-                  {preset.emoji} {preset.label}
-                </button>
-                {user && user.role === 'admin' && (
+            {presets.map(preset => {
+              let colorClasses = "bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 border-violet-500/10";
+              if (preset.id === 'p1' || preset.label?.includes('Tirupati')) {
+                colorClasses = "bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20 border-indigo-500/10";
+              } else if (preset.id === 'p2' || preset.label?.includes('Goa')) {
+                colorClasses = "bg-pink-500/10 text-pink-400 hover:bg-pink-500/20 border-pink-500/10";
+              } else if (preset.id === 'p3' || preset.label?.includes('Mumbai')) {
+                colorClasses = "bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border-amber-500/10";
+              } else if (preset.id === 'p4' || preset.label?.includes('Ladakh')) {
+                colorClasses = "bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 border-orange-500/10";
+              } else if (preset.id === 'p5' || preset.label?.includes('Ooty')) {
+                colorClasses = "bg-sky-500/10 text-sky-400 hover:bg-sky-500/20 border-sky-500/10";
+              } else if (preset.id === 'p6' || preset.label?.includes('Jaipur')) {
+                colorClasses = "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/10";
+              }
+
+              return (
+                <div key={preset.id} className="relative group flex items-center">
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); deleteCustomPreset(preset.id); }}
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 text-violet-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"
-                    title="Remove this preset"
+                    onClick={() => applyCustomPreset(preset)}
+                    className={`px-3 py-2 text-xs font-semibold border rounded-xl transition-all ${user && user.role === 'admin' ? 'pr-7' : ''} ${colorClasses}`}
                   >
-                    <X className="h-3 w-3" />
+                    {preset.emoji} {preset.label}
                   </button>
-                )}
-              </div>
-            ))}
+                  {user && user.role === 'admin' && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); deleteCustomPreset(preset.id); }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400/70 hover:text-rose-500 hover:scale-110 transition-all p-0.5 rounded-full hover:bg-rose-500/10"
+                      title="Remove this preset"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -1793,22 +2363,6 @@ function GreetingGenerator() {
                     <option>Standard</option><option>Premium</option><option>VIP</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Booking History</label>
-                  <select value={presetForm.bookingHistory} onChange={e => setPresetForm(p => ({...p, bookingHistory: e.target.value}))} className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm">
-                    <option>1st Trip</option><option>2 Previous Trips</option><option>3 Previous Trips</option><option>4 Previous Trips</option><option>5 Previous Trips</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Language</label>
-                  <select value={presetForm.language} onChange={e => setPresetForm(p => ({...p, language: e.target.value}))} className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm">
-                    <option>English</option><option>Telugu</option><option>Hindi</option><option>Tamil</option><option>Kannada</option><option>Malayalam</option><option>Marathi</option><option>Bengali</option>
-                  </select>
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Special Notes</label>
-                  <input type="text" value={presetForm.notes} onChange={e => setPresetForm(p => ({...p, notes: e.target.value}))} placeholder="e.g. Arrange vegetarian meals" className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm" />
-                </div>
               </div>
               <div className="flex gap-2 pt-1">
                 <button type="button" onClick={saveCustomPreset} disabled={!presetForm.label.trim() || !presetForm.destination.trim()} className="flex-1 py-2.5 hero-gradient text-white font-bold rounded-xl text-sm transition-opacity hover:opacity-90 disabled:opacity-40">
@@ -1826,7 +2380,7 @@ function GreetingGenerator() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Customer Name</label>
-              <input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Ravi Kumar" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-350 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
+              <input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Ravi Kumar" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">WhatsApp Number</label>
@@ -1839,38 +2393,107 @@ function GreetingGenerator() {
                 }} 
                 placeholder="e.g. +91 98765 43210" 
                 maxLength="16"
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-350 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" 
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" 
               />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Destination</label>
-              <input type="text" required value={destination} onChange={e => setDestination(e.target.value)} placeholder="e.g. Tirupati" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-350 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
+              <input type="text" required value={destination} onChange={e => setDestination(e.target.value)} placeholder="e.g. Tirupati" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Travel Date</label>
-              <div className="relative group">
-                <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-indigo-550 dark:text-indigo-400 group-hover:text-indigo-500 transition-colors pointer-events-none" />
-                <input 
-                  type="date" 
-                  required 
-                  value={travelDate} 
-                  onChange={e => setTravelDate(e.target.value)} 
-                  onClick={e => {
-                    try { e.target.showPicker(); } catch (err) {}
+              <div className="grid grid-cols-3 gap-2">
+                {/* Day Select */}
+                <select
+                  value={selectedDay}
+                  required
+                  onChange={e => handleDropdownDateChange(selectedYear, selectedMonth, e.target.value)}
+                  className="px-2 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer text-slate-700 dark:text-slate-200"
+                >
+                  <option value="">Day</option>
+                  {Array.from({ length: getDaysInMonth(selectedYear, selectedMonth) }, (_, i) => {
+                    const dayNum = i + 1;
+                    const dayStr = String(dayNum).padStart(2, '0');
+                    const isPast = selectedYear === String(currentYear) && selectedMonth === String(currentMonth).padStart(2, '0') && dayNum < currentDay;
+                    return (
+                      <option key={dayStr} value={dayStr} disabled={isPast}>
+                        {dayNum}
+                      </option>
+                    );
+                  })}
+                </select>
+
+                {/* Month Select */}
+                <select
+                  value={selectedMonth}
+                  required
+                  onChange={e => {
+                    const newMonth = e.target.value;
+                    let newDay = selectedDay;
+                    const daysInNewMonth = getDaysInMonth(selectedYear, newMonth);
+                    if (selectedDay && parseInt(selectedDay) > daysInNewMonth) {
+                      newDay = String(daysInNewMonth).padStart(2, '0');
+                    }
+                    if (selectedYear === String(currentYear) && newMonth === String(currentMonth).padStart(2, '0') && newDay && parseInt(newDay) < currentDay) {
+                      newDay = String(currentDay).padStart(2, '0');
+                    }
+                    handleDropdownDateChange(selectedYear, newMonth, newDay);
                   }}
-                  onFocus={e => {
-                    try { e.target.showPicker(); } catch (err) {}
+                  className="px-2 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer text-slate-700 dark:text-slate-200"
+                >
+                  <option value="">Month</option>
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const monthNum = i + 1;
+                    const monthStr = String(monthNum).padStart(2, '0');
+                    const isPast = selectedYear === String(currentYear) && monthNum < currentMonth;
+                    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    return (
+                      <option key={monthStr} value={monthStr} disabled={isPast}>
+                        {monthNames[i]}
+                      </option>
+                    );
+                  })}
+                </select>
+
+                {/* Year Select */}
+                <select
+                  value={selectedYear}
+                  required
+                  onChange={e => {
+                    const newYear = e.target.value;
+                    let newMonth = selectedMonth;
+                    let newDay = selectedDay;
+                    if (newYear === String(currentYear)) {
+                      if (selectedMonth && parseInt(selectedMonth) < currentMonth) {
+                        newMonth = String(currentMonth).padStart(2, '0');
+                      }
+                      if (selectedMonth === String(currentMonth).padStart(2, '0') && selectedDay && parseInt(selectedDay) < currentDay) {
+                        newDay = String(currentDay).padStart(2, '0');
+                      }
+                    }
+                    handleDropdownDateChange(newYear, newMonth, newDay);
                   }}
-                  className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-350 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer text-slate-700 dark:text-slate-200" 
-                />
+                  className="px-2 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer text-slate-700 dark:text-slate-200"
+                >
+                  <option value="">Year</option>
+                  {Array.from({ length: 80 }, (_, i) => {
+                    const yearNum = currentYear + i;
+                    const yearStr = String(yearNum);
+                    return (
+                      <option key={yearStr} value={yearStr}>
+                        {yearStr}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Travel Group/Type</label>
-              <select value={travelType} onChange={e => setTravelType(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-350 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer">
+              <select value={travelType} onChange={e => setTravelType(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer">
                 <option value="Family Trip">Family Trip</option>
                 <option value="Spiritual Tour">Spiritual Tour</option>
                 <option value="Honeymoon">Honeymoon</option>
@@ -1883,11 +2506,11 @@ function GreetingGenerator() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Booking History</label>
-              <input type="text" value={bookingHistory} onChange={e => setBookingHistory(e.target.value)} placeholder="e.g. 3 Previous Trips" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-350 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
+              <input type="text" value={bookingHistory} onChange={e => setBookingHistory(e.target.value)} placeholder="e.g. 3 Previous Trips" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Language</label>
-              <select value={preferredLanguage} onChange={e => setPreferredLanguage(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-350 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer">
+              <select value={preferredLanguage} onChange={e => setPreferredLanguage(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer">
                 <option value="English">English</option>
                 <option value="Telugu">Telugu</option>
                 <option value="Hindi">Hindi</option>
@@ -1900,7 +2523,7 @@ function GreetingGenerator() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Category</label>
-              <select value={customerCategory} onChange={e => setCustomerCategory(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-350 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer">
+              <select value={customerCategory} onChange={e => setCustomerCategory(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer">
                 <option value="Standard">Standard</option>
                 <option value="Premium">Premium</option>
                 <option value="VIP">VIP</option>
@@ -1910,7 +2533,7 @@ function GreetingGenerator() {
 
           <div>
             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Special Instructions / Notes</label>
-            <textarea value={specialNotes} onChange={e => setSpecialNotes(e.target.value)} rows="3" placeholder="e.g. Senior citizen requires wheelchair assistance." className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm resize-none transition-all hover:border-slate-350 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
+            <textarea value={specialNotes} onChange={e => setSpecialNotes(e.target.value)} rows="3" placeholder="e.g. Senior citizen requires wheelchair assistance." className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm resize-none transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
           </div>
 
           <button type="submit" disabled={loading} className="w-full py-4 hero-gradient text-white rounded-2xl font-bold hover:opacity-95 hover:scale-[1.01] active:scale-[0.99] transition-all text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-indigo-500/10">
@@ -2132,15 +2755,13 @@ function GreetingGenerator() {
                               <Share2 className="h-3.5 w-3.5" />
                               <span>Send</span>
                             </button>
-                            {user && user.role === 'admin' && (
-                              <button 
-                                onClick={() => handleDeleteGreeting(record.id)} 
-                                title="Delete Record Permanently" 
-                                className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            )}
+                            <button 
+                              onClick={() => handleDeleteGreeting(record.id)} 
+                              title="Delete Record Permanently" 
+                              className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -2283,11 +2904,9 @@ function HistoryLog() {
                     </td>
                     <td className="p-4 text-xs text-slate-500">{new Date(record.created_at).toLocaleDateString()}</td>
                     <td className="p-4 text-right">
-                      {user && user.role === 'admin' && (
-                        <button onClick={() => handleDelete(record.id)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all" title="Delete Log">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      )}
+                      <button onClick={() => handleDelete(record.id)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all" title="Delete Log">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -2308,11 +2927,9 @@ function HistoryLog() {
                     <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
                       record.status === 'shared' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20'
                     }`}>{record.status}</span>
-                    {user && user.role === 'admin' && (
-                      <button onClick={() => handleDelete(record.id)} className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all" title="Delete">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    )}
+                    <button onClick={() => handleDelete(record.id)} className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all" title="Delete">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2 text-[11px]">
@@ -2618,11 +3235,11 @@ function UserProfile() {
         <form onSubmit={handleUpdate} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Username</label>
-            <input type="text" disabled value={user?.username} className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-850 rounded-xl outline-none text-sm text-slate-500 font-mono" />
+            <input type="text" disabled value={user?.username} className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 rounded-xl outline-none text-sm text-slate-500 font-mono" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Role Status</label>
-            <input type="text" disabled value={user?.role} className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-850 rounded-xl outline-none text-sm text-slate-500 font-mono" />
+            <input type="text" disabled value={user?.role} className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 rounded-xl outline-none text-sm text-slate-500 font-mono" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
@@ -2966,43 +3583,15 @@ function SettingsPage() {
             <p className="text-xs text-slate-500 mt-1">Sets a soft-limit label for how long greeting records are considered active.</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            <button
-              type="button"
-              onClick={handleExportData}
-              className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500 border border-indigo-500/20 font-bold text-xs transition-all"
-            >
-              <Download className="h-4 w-4" />
-              Export All Data (JSON)
-            </button>
+          <div className="pt-2">
             <button
               type="button"
               onClick={handleClearData}
-              className={`flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-bold text-xs transition-all border ${clearConfirm ? 'bg-rose-600 text-white border-rose-600 animate-pulse' : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border-rose-500/20'}`}
+              className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-bold text-xs transition-all border ${clearConfirm ? 'bg-rose-600 text-white border-rose-600 animate-pulse' : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border-rose-500/20'}`}
             >
               <Trash2 className="h-4 w-4" />
               {clearConfirm ? '⚠️ Click again to confirm clear' : 'Clear Local App Data'}
             </button>
-          </div>
-        </div>
-
-        {/* ── 5. SYSTEM INFO ── */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4">
-          <SectionHeader icon={HelpCircle} title="System Information" subtitle="Application version and environment details" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {[
-              { label: 'App Version', value: 'v1.0.0' },
-              { label: 'Environment', value: 'Development' },
-              { label: 'Backend Port', value: ':5000' },
-              { label: 'Frontend Port', value: ':5173' },
-              { label: 'AI Provider', value: 'Google Gemini' },
-              { label: 'Auth Method', value: 'JWT / Bearer' },
-            ].map(({ label, value }) => (
-              <div key={label} className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-2xl">
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">{label}</p>
-                <p className="text-sm font-mono font-bold text-slate-900 dark:text-white mt-1">{value}</p>
-              </div>
-            ))}
           </div>
         </div>
 

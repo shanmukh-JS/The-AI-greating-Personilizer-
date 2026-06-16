@@ -66,14 +66,14 @@
     "notes": "Book local guide for historical forts and royal dinner reservations."
   },
   {
-    "id": "fc7ada1a-223f-4ddb-9704-6246a21779ca",
-    "label": "mysoor",
-    "emoji": "✈️",
-    "destination": "mysoor",
-    "travelType": "Honeymoon",
-    "bookingHistory": "5 Previous Trips",
-    "category": "VIP",
-    "language": "Bengali",
-    "notes": "need veg meals"
+    "id": "384340b4-e514-4496-aa32-f91e5fb6783e",
+    "label": "Christmas",
+    "emoji": "🎅",
+    "destination": "Basilica of Bom Jesus (Goa)",
+    "travelType": "Spiritual Tour",
+    "bookingHistory": "1st Trip",
+    "category": "Premium",
+    "language": "English",
+    "notes": ""
   }
 ]

@@ -217,7 +217,7 @@ app.put('/api/history/:id/status', authenticateToken, async (req, res) => {
 });
 
 // DELETE /api/history/:id (Delete individual greeting record)
-app.delete('/api/history/:id', authenticateToken, requireAdmin, async (req, res) => {
+app.delete('/api/history/:id', authenticateToken, async (req, res) => {
   try {
     const success = await db.deleteGreeting(req.params.id);
     if (!success) {
