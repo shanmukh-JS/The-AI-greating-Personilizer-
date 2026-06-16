@@ -141,8 +141,15 @@ export function AuthProvider({ children }) {
 // Protected Route Guard
 function ProtectedRoute({ children }) {
   const { token, loading } = useContext(AuthContext);
+  const location = useLocation();
+  
   if (loading) return <LoadingSpinner />;
-  return token ? children : <Navigate to="/login" replace />;
+  
+  if (!token) {
+    return <Navigate to="/login" state={{ from: location, message: 'Please sign in to access this page.' }} replace />;
+  }
+  
+  return children;
 }
 
 function AdminRoute({ children }) {
@@ -480,6 +487,10 @@ function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || '/dashboard';
+  const accessDeniedMessage = location.state?.message;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -490,7 +501,7 @@ function LoginPage() {
     setLoading(false);
 
     if (res.success) {
-      navigate('/dashboard');
+      navigate(from, { replace: true });
     } else {
       setError(res.error);
     }
@@ -507,6 +518,13 @@ function LoginPage() {
           <h2 className="text-2xl font-display font-extrabold text-white mt-4">Welcome back</h2>
           <p className="text-sm text-slate-400 mt-1">Sign in to your CRM operator account</p>
         </div>
+
+        {accessDeniedMessage && !error && (
+          <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center gap-2 text-sm mb-6 animate-pulse">
+            <AlertCircle className="h-5 w-5 shrink-0" />
+            <span>{accessDeniedMessage}</span>
+          </div>
+        )}
 
         {error && (
           <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center gap-2 text-sm mb-6">
@@ -536,6 +554,107 @@ function LoginPage() {
           <p className="text-xs text-indigo-400 font-mono">Username: <span className="text-emerald-400">admin</span> / Password: <span className="text-emerald-400">password123</span> or <span className="text-emerald-400">ManivthaTravels2026!</span></p>
           <p className="text-xs text-indigo-400 font-mono mt-1">Username: <span className="text-emerald-400">shanmukh.k</span> / Password: <span className="text-emerald-400">jaminishannu@4669</span></p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// -------------------------------------------------------------
+// REGISTER PLACEHOLDER VIEW
+// -------------------------------------------------------------
+function RegisterPage() {
+  const navigate = useNavigate();
+  return (
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-6 relative">
+      <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-indigo-500/10 blur-3xl"></div>
+      <div className="absolute bottom-1/4 right-1/4 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl"></div>
+
+      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 relative z-10 text-center">
+        <div className="flex flex-col items-center mb-6">
+          <div className="h-12 w-12 rounded-2xl hero-gradient flex items-center justify-center text-white font-extrabold text-2xl shadow-lg shadow-indigo-500/20">M</div>
+          <h2 className="text-2xl font-display font-extrabold text-white mt-4">Create Account</h2>
+          <p className="text-sm text-slate-400 mt-1">Register as a CRM operator</p>
+        </div>
+
+        <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+          Operator registration is restricted. Please contact the system administrator to create your account credentials.
+        </p>
+
+        <button 
+          onClick={() => navigate('/login')} 
+          className="w-full py-4 rounded-2xl hero-gradient font-bold text-white shadow-lg shadow-indigo-500/25 hover:opacity-90 transition-all text-sm"
+        >
+          Back to Login
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// -------------------------------------------------------------
+// FORGOT PASSWORD PLACEHOLDER VIEW
+// -------------------------------------------------------------
+function ForgotPasswordPage() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSubmitted(true);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center px-6 relative">
+      <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-indigo-500/10 blur-3xl"></div>
+      <div className="absolute bottom-1/4 right-1/4 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl"></div>
+
+      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 relative z-10">
+        <div className="flex flex-col items-center mb-8">
+          <div className="h-12 w-12 rounded-2xl hero-gradient flex items-center justify-center text-white font-extrabold text-2xl shadow-lg shadow-indigo-500/20">M</div>
+          <h2 className="text-2xl font-display font-extrabold text-white mt-4">Reset Password</h2>
+          <p className="text-sm text-slate-400 mt-1">Recover your operator account password</p>
+        </div>
+
+        {submitted ? (
+          <div className="text-center space-y-6">
+            <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl text-sm">
+              Password recovery link has been simulated. In a live production setup, an email would be dispatched to <span className="font-semibold">{email}</span>.
+            </div>
+            <button 
+              onClick={() => navigate('/login')} 
+              className="w-full py-4 rounded-2xl hero-gradient font-bold text-white shadow-lg shadow-indigo-500/25 hover:opacity-90 transition-all text-sm"
+            >
+              Back to Login
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Operator Email Address</label>
+              <input 
+                type="email" 
+                required 
+                value={email} 
+                onChange={e => setEmail(e.target.value)} 
+                placeholder="e.g. admin@manivthatravels.com" 
+                className="w-full px-4 py-3.5 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-2xl text-white outline-none transition-colors placeholder:text-slate-600" 
+              />
+            </div>
+            
+            <button type="submit" className="w-full py-4 rounded-2xl hero-gradient font-bold text-white shadow-lg shadow-indigo-500/25 hover:opacity-90 transition-all text-sm mt-4">
+              Send Reset Link
+            </button>
+            
+            <button 
+              type="button"
+              onClick={() => navigate('/login')} 
+              className="w-full py-3.5 rounded-2xl bg-slate-800/40 border border-slate-800 text-slate-300 font-semibold hover:bg-slate-800 transition-all text-sm"
+            >
+              Cancel
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
@@ -2678,6 +2797,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           
           <Route path="/dashboard" element={
             <ProtectedRoute>
