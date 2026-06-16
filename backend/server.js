@@ -123,7 +123,14 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 app.get('/', (req, res) => {
-  res.send('Backend Working');
+  res.json({
+    root: true,
+    healthRouteExists: typeof app._router !== 'undefined'
+  });
+});
+
+app.get('/test', (req, res) => {
+  res.send('TEST ROUTE WORKING');
 });
 
 // GET /api/health (Uptime Monitor)
