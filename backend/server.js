@@ -272,6 +272,54 @@ app.get('/api/analytics', authenticateToken, async (req, res) => {
   }
 });
 
+// GET /api/presets (Query custom preset form settings)
+app.get('/api/presets', authenticateToken, async (req, res) => {
+  try {
+    const list = await db.getPresets();
+    res.json(list);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to read presets database.' });
+  }
+});
+
+// POST /api/presets (Create custom preset place - admin restricted)
+app.post('/api/presets', authenticateToken, requireAdmin, async (req, res) => {
+  const { label, emoji, destination, travelType, bookingHistory, category, language, notes } = req.body;
+
+  if (!label || !destination) {
+    return res.status(400).json({ error: 'Preset label and destination are required.' });
+  }
+
+  try {
+    const record = await db.createPreset({
+      label: sanitizeInput(label),
+      emoji: sanitizeInput(emoji),
+      destination: sanitizeInput(destination),
+      travelType: sanitizeInput(travelType),
+      bookingHistory: sanitizeInput(bookingHistory),
+      category: sanitizeInput(category),
+      language: sanitizeInput(language),
+      notes: sanitizeInput(notes)
+    });
+    res.status(201).json(record);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to save preset to database.' });
+  }
+});
+
+// DELETE /api/presets/:id (Delete custom preset place - admin restricted)
+app.delete('/api/presets/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const success = await db.deletePreset(req.params.id);
+    if (!success) {
+      return res.status(404).json({ error: 'Preset not found.' });
+    }
+    res.json({ message: 'Preset deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete preset from database.' });
+  }
+});
+
 // GET /api/templates (List preset headers)
 app.get('/api/templates', authenticateToken, async (req, res) => {
   try {

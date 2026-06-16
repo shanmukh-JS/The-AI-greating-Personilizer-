@@ -233,8 +233,7 @@ function Layout({ children }) {
 
   const location = useLocation();
 
-  const [sidebarHovered, setSidebarHovered] = useState(false);
-  const isExpanded = isMobile ? sidebarOpen : (sidebarOpen || sidebarHovered);
+  const isExpanded = sidebarOpen;
 
   // Widths
   const EXPANDED  = 256; // 16rem
@@ -267,8 +266,6 @@ function Layout({ children }) {
           Desktop → fixed left column, collapses to icon-rail
       ═══════════════════════════════════════ */}
       <aside
-        onMouseEnter={() => !isMobile && setSidebarHovered(true)}
-        onMouseLeave={() => !isMobile && setSidebarHovered(false)}
         style={{ width: `${sidebarWidth}px` }}
         className={`
           fixed top-0 left-0 h-full z-40
@@ -937,9 +934,13 @@ function Dashboard() {
         
         {/* Weekly Generation Volume Chart */}
         <div className="p-6 bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl lg:col-span-2 flex flex-col justify-between hover-highlight">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
             <h3 className="font-display font-bold text-xs uppercase tracking-widest text-slate-400">Weekly Generation Volume</h3>
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-950/40 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-800/80 font-mono scale-90 sm:scale-95 origin-left sm:origin-right">
+              <span>Last updated: Tue, Jun 16 2026</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Live</span>
+            </div>
           </div>
           
           <div className="w-full h-56 flex items-end justify-between px-2 pb-2 relative">
@@ -961,7 +962,7 @@ function Dashboard() {
                   
                   {/* Glowing pill bar */}
                   <div 
-                    className={`w-10 rounded-full bar-glow transition-all duration-300 ${
+                    className={`w-6 sm:w-10 rounded-full bar-glow transition-all duration-300 ${
                       isHighlight 
                         ? 'bg-gradient-to-t from-indigo-600 via-indigo-500 to-cyan-400 opacity-100 shadow-[0_0_20px_rgba(6,182,212,0.4)]' 
                         : 'bg-gradient-to-t from-indigo-900/60 to-indigo-700/60 opacity-40 hover:opacity-85'
@@ -970,7 +971,7 @@ function Dashboard() {
                   >
                   </div>
                   
-                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wide mt-1">{day.date}</span>
+                  <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 tracking-wide mt-1">{day.date}</span>
                 </div>
               );
             })}
@@ -1019,9 +1020,16 @@ function Dashboard() {
         
         {/* Recent Feedback Feed Card */}
         <div className="p-6 bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl lg:col-span-2 space-y-5 hover-highlight">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <h3 className="font-display font-bold text-xs uppercase tracking-widest text-slate-400">Recent Customer Feedback</h3>
-            <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/25 text-[10px] font-bold">3 new</span>
+            <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+              <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/25 text-[10px] font-bold">3 new</span>
+              <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-950/40 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-800/80 font-mono scale-90 sm:scale-95 origin-left sm:origin-right">
+                <span>Last updated: Tue, Jun 16 2026</span>
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Live</span>
+              </div>
+            </div>
           </div>
           
           <div className="space-y-4 max-h-[360px] overflow-y-auto pr-2">
@@ -1036,7 +1044,7 @@ function Dashboard() {
                 return (
                   <div 
                     key={fb.id || idx} 
-                    className="p-4 bg-white/40 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-805 rounded-2xl flex flex-col md:flex-row gap-4 hover-highlight transition-all"
+                    className="p-4 bg-white/40 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800 rounded-2xl flex gap-4 hover-highlight transition-all"
                   >
                     {/* Customer Initials Avatar */}
                     <div className="h-10 w-10 shrink-0 rounded-full bg-indigo-600 dark:bg-indigo-950 text-white dark:text-indigo-300 font-extrabold text-sm flex items-center justify-center border border-indigo-500/30 select-none">
@@ -1047,7 +1055,7 @@ function Dashboard() {
                       <div className="flex items-center justify-between flex-wrap gap-2">
                         <div>
                           <span className="font-extrabold text-sm text-slate-900 dark:text-white block">{fb.customer_name}</span>
-                          <span className="text-[10px] text-slate-400 dark:text-slate-505 font-medium block mt-0.5">{new Date(fb.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium block mt-0.5">{new Date(fb.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                         </div>
                         <span className="px-2.5 py-1 rounded-full bg-slate-100/50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 border border-slate-200/50 dark:border-slate-800/80 text-[10px] font-bold flex items-center gap-1">
                           ➔ {fb.destination}
@@ -1061,7 +1069,7 @@ function Dashboard() {
                         ))}
                       </div>
                       
-                      <p className="text-xs text-slate-655 dark:text-slate-350 leading-relaxed font-medium">
+                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                         "{fb.comments || 'No comments left.'}"
                       </p>
                     </div>
@@ -1069,7 +1077,7 @@ function Dashboard() {
                 );
               })
             ) : (
-              <p className="text-slate-505 text-sm py-12 text-center">No customer feedback logs found.</p>
+              <p className="text-slate-500 text-sm py-12 text-center">No customer feedback logs found.</p>
             )}
           </div>
         </div>
@@ -1224,10 +1232,9 @@ function GreetingGenerator() {
   const [historyList, setHistoryList] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
 
-  // Custom presets state (admin-managed, stored in localStorage)
-  const [customPresets, setCustomPresets] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('custom_presets') || '[]'); } catch { return []; }
-  });
+  // Custom presets state (admin-managed, fetched from database)
+  const [presets, setPresets] = useState([]);
+  const [presetsLoading, setPresetsLoading] = useState(true);
   const [showPresetModal, setShowPresetModal] = useState(false);
   const [presetForm, setPresetForm] = useState({ label: '', emoji: '✈️', destination: '', travelType: 'Family Trip', bookingHistory: '1st Trip', category: 'Standard', language: 'English', notes: '' });
 
@@ -1245,23 +1252,59 @@ function GreetingGenerator() {
     setHistoryLoading(false);
   };
 
+  const loadPresets = async () => {
+    setPresetsLoading(true);
+    try {
+      const res = await api.get('/presets');
+      setPresets(res.data);
+    } catch (e) {
+      console.warn("API offline, falling back to local storage presets");
+      let local = [];
+      try {
+        local = JSON.parse(localStorage.getItem('custom_presets') || '[]');
+      } catch (err) {
+        local = [];
+      }
+      setPresets(local);
+    }
+    setPresetsLoading(false);
+  };
+
   useEffect(() => {
     loadGreetingsHistory();
+    loadPresets();
   }, []);
 
-  const saveCustomPreset = () => {
+  const saveCustomPreset = async () => {
     if (!presetForm.label.trim() || !presetForm.destination.trim()) return;
-    const updated = [...customPresets, { ...presetForm, id: 'cp_' + Date.now() }];
-    setCustomPresets(updated);
-    localStorage.setItem('custom_presets', JSON.stringify(updated));
+    try {
+      await api.post('/presets', presetForm);
+      setAlertMessage('Preset settings saved successfully.');
+      loadPresets();
+    } catch (e) {
+      console.warn("API offline, saving preset locally");
+      const updated = [...presets, { ...presetForm, id: 'cp_' + Date.now() }];
+      setPresets(updated);
+      localStorage.setItem('custom_presets', JSON.stringify(updated));
+      setAlertMessage('Preset settings saved locally (offline mode).');
+    }
     setPresetForm({ label: '', emoji: '✈️', destination: '', travelType: 'Family Trip', bookingHistory: '1st Trip', category: 'Standard', language: 'English', notes: '' });
     setShowPresetModal(false);
   };
 
-  const deleteCustomPreset = (id) => {
-    const updated = customPresets.filter(p => p.id !== id);
-    setCustomPresets(updated);
-    localStorage.setItem('custom_presets', JSON.stringify(updated));
+  const deleteCustomPreset = async (id) => {
+    if (!window.confirm("Are you sure you want to permanently delete this preset?")) return;
+    try {
+      await api.delete(`/presets/${id}`);
+      setAlertMessage('Preset deleted successfully.');
+      loadPresets();
+    } catch (e) {
+      console.warn("API offline, deleting preset locally");
+      const updated = presets.filter(p => p.id !== id);
+      setPresets(updated);
+      localStorage.setItem('custom_presets', JSON.stringify(updated));
+      setAlertMessage('Preset deleted locally.');
+    }
   };
 
   const handleLoadGreeting = (greeting) => {
@@ -1815,6 +1858,12 @@ function GreetingGenerator() {
                   required 
                   value={travelDate} 
                   onChange={e => setTravelDate(e.target.value)} 
+                  onClick={e => {
+                    try { e.target.showPicker(); } catch (err) {}
+                  }}
+                  onFocus={e => {
+                    try { e.target.showPicker(); } catch (err) {}
+                  }}
                   className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-350 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer text-slate-700 dark:text-slate-200" 
                 />
               </div>

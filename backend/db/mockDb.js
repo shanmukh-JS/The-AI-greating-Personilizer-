@@ -12,6 +12,7 @@ const USERS_FILE = path.join(DATABASE_DIR, 'users.json');
 const TEMPLATES_FILE = path.join(DATABASE_DIR, 'templates.json');
 const GREETINGS_FILE = path.join(DATABASE_DIR, 'greetings.json');
 const FEEDBACK_FILE = path.join(DATABASE_DIR, 'feedback.json');
+const PRESETS_FILE = path.join(DATABASE_DIR, 'presets.json');
 
 // Initial seed tables matching database schemas
 const initialUsers = [
@@ -70,6 +71,75 @@ const initialGreetings = [];
 
 const initialFeedback = [];
 
+const initialPresets = [
+  {
+    id: 'p1',
+    label: 'Tirupati Pilgrimage',
+    emoji: '☸️',
+    destination: 'Tirupati',
+    travelType: 'Spiritual Tour',
+    bookingHistory: '3 Previous Trips',
+    category: 'VIP',
+    language: 'English',
+    notes: 'Arrange clean vegetarian guide.'
+  },
+  {
+    id: 'p2',
+    label: 'Goa Honeymoon',
+    emoji: '🏖️',
+    destination: 'Goa',
+    travelType: 'Honeymoon',
+    bookingHistory: '1st Trip',
+    category: 'Premium',
+    language: 'English',
+    notes: 'Arrange flower decorations and candle light dinners.'
+  },
+  {
+    id: 'p3',
+    label: 'Mumbai Corporate',
+    emoji: '💼',
+    destination: 'Mumbai',
+    travelType: 'Corporate Travel',
+    bookingHistory: '5 Previous Trips',
+    category: 'VIP',
+    language: 'English',
+    notes: 'Provide premium executive sedan, late check-out, express Wi-Fi.'
+  },
+  {
+    id: 'p4',
+    label: 'Ladakh Adventure',
+    emoji: '🏔️',
+    destination: 'Leh Ladakh',
+    travelType: 'Solo Adventure',
+    bookingHistory: '1st Trip',
+    category: 'Standard',
+    language: 'Hindi',
+    notes: 'Include high-altitude oxygen kit, emergency local contacts, bike rental details.'
+  },
+  {
+    id: 'p5',
+    label: 'Ooty Family',
+    emoji: '👪',
+    destination: 'Ooty',
+    travelType: 'Family Trip',
+    bookingHistory: '2 Previous Trips',
+    category: 'Premium',
+    language: 'Telugu',
+    notes: 'Book kid-friendly theme park tickets and arrange an English-speaking driver.'
+  },
+  {
+    id: 'p6',
+    label: 'Jaipur Heritage',
+    emoji: '🏰',
+    destination: 'Jaipur',
+    travelType: 'Family Trip',
+    bookingHistory: '4 Previous Trips',
+    category: 'VIP',
+    language: 'Hindi',
+    notes: 'Book local guide for historical forts and royal dinner reservations.'
+  }
+];
+
 // Read helper with JSON parse & folder creation
 function readJSONFile(filePath, defaultValue) {
   try {
@@ -107,6 +177,7 @@ let usersTable = [];
 let templatesTable = [];
 let greetingsTable = [];
 let feedbackTable = [];
+let presetsTable = [];
 const adminLogsTable = [];
 
 function loadAllTables() {
@@ -114,6 +185,7 @@ function loadAllTables() {
   templatesTable = readJSONFile(TEMPLATES_FILE, initialTemplates);
   greetingsTable = readJSONFile(GREETINGS_FILE, initialGreetings);
   feedbackTable = readJSONFile(FEEDBACK_FILE, initialFeedback);
+  presetsTable = readJSONFile(PRESETS_FILE, initialPresets);
 }
 
 // Initial load
@@ -404,6 +476,41 @@ async function deleteGreeting(id) {
   return false;
 }
 
+// PRESETS OPERATIONS
+async function getPresets() {
+  loadAllTables();
+  return presetsTable;
+}
+
+async function createPreset(data) {
+  loadAllTables();
+  const record = {
+    id: generateUUID(),
+    label: data.label,
+    emoji: data.emoji || '✈️',
+    destination: data.destination,
+    travelType: data.travelType || 'Family Trip',
+    bookingHistory: data.bookingHistory || '1st Trip',
+    category: data.category || 'Standard',
+    language: data.language || 'English',
+    notes: data.notes || ''
+  };
+  presetsTable.push(record);
+  writeJSONFile(PRESETS_FILE, presetsTable);
+  return record;
+}
+
+async function deletePreset(id) {
+  loadAllTables();
+  const idx = presetsTable.findIndex(p => p.id === id);
+  if (idx !== -1) {
+    presetsTable.splice(idx, 1);
+    writeJSONFile(PRESETS_FILE, presetsTable);
+    return true;
+  }
+  return false;
+}
+
 module.exports = {
   findUserByUsername,
   findUserById,
@@ -420,6 +527,9 @@ module.exports = {
   updateTemplate,
   deleteTemplate,
   getAnalyticsData,
+  getPresets,
+  createPreset,
+  deletePreset,
   usersTable
 };
 

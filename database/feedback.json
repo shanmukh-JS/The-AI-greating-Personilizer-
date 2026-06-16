@@ -33,5 +33,12 @@
     "greeting_id": "282a9ad3-5e46-4f68-805e-6defa285ce22",
     "rating": 3,
     "comments": ""
+  },
+  {
+    "id": "b2d6d7c4-21a5-4dcb-887a-8e7f1c625fbb",
+    "created_at": "2026-06-16T09:46:52.955Z",
+    "greeting_id": "c7745e3c-45ee-4bec-81e1-251ba8b58b81",
+    "rating": 5,
+    "comments": ""
   }
 ]
