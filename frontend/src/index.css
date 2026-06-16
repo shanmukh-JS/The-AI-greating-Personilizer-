@@ -198,3 +198,81 @@ html:not(.dark) .text-sky-400 {
     transform: translateX(0) !important;
   }
 }
+
+/* Custom premium transitions and highlights */
+.hover-highlight {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-highlight:hover {
+  transform: translateY(-4px) scale(1.02);
+  border-color: rgba(99, 102, 241, 0.45) !important;
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.4), 
+              0 0 20px 4px rgba(99, 102, 241, 0.15);
+}
+
+/* Highlight for smaller interactive items like table rows and selects */
+.hover-row-highlight {
+  transition: all 0.2s ease-out;
+}
+
+.hover-row-highlight:hover {
+  transform: translateX(4px);
+  background-color: rgba(99, 102, 241, 0.08) !important;
+  border-color: rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Chart bar glow and animation styles */
+.bar-glow {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bar-glow:hover {
+  transform: translateY(-4px) scaleX(1.08);
+  box-shadow: 0 0 25px rgba(6, 182, 212, 0.5), 
+              0 0 35px rgba(99, 102, 241, 0.3);
+  opacity: 1 !important;
+}
+
+/* Date input picker styling adjustments */
+input[type="date"] {
+  color-scheme: dark;
+}
+
+html:not(.dark) input[type="date"] {
+  color-scheme: light;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+html.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8) sepia(50%) saturate(1000%) hue-rotate(200deg);
+}
+
+/* Premium Card Glow for Highlights/Banners */
+.premium-glow-panel {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37),
+              inset 0 0 20px rgba(99, 102, 241, 0.05);
+}
+
+.premium-glow-panel:hover {
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5),
+              0 0 25px rgba(99, 102, 241, 0.2),
+              inset 0 0 30px rgba(99, 102, 241, 0.1);
+  transform: translateY(-4px);
+}
+
