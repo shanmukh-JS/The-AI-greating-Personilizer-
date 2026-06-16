@@ -1178,11 +1178,14 @@ function GreetingGenerator() {
     }
 
     const encodedText = encodeURIComponent(resultGreeting.generated_text);
-    // api.whatsapp.com/send opens WhatsApp Web with phone + message pre-filled
-    window.open(
-      `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encodedText}`,
-      '_blank'
-    );
+    const mode = localStorage.getItem('settings_whatsappMode') || 'web';
+    let url = `https://web.whatsapp.com/send?phone=${cleanNumber}&text=${encodedText}`;
+    if (mode === 'api') {
+      url = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encodedText}`;
+    } else if (mode === 'wa') {
+      url = `https://wa.me/${cleanNumber}?text=${encodedText}`;
+    }
+    window.open(url, '_blank');
 
     setAlertMessage(`✅ WhatsApp opened for +${cleanNumber} — click Send in WhatsApp to deliver.`);
 
@@ -1663,13 +1666,29 @@ function GreetingGenerator() {
                   {historyList.map((record) => {
                     const handleQuickWhatsApp = () => {
                       const encodedText = encodeURIComponent(record.generated_text);
-                      let url = `https://api.whatsapp.com/send?text=${encodedText}`;
+                      const mode = localStorage.getItem('settings_whatsappMode') || 'web';
+                      
+                      let cleanNumber = '';
                       if (record.whatsapp_number) {
-                        let cleanNumber = record.whatsapp_number.replace(/\D/g, '');
+                        cleanNumber = record.whatsapp_number.replace(/\D/g, '');
                         if (cleanNumber.length === 10) {
                           cleanNumber = '91' + cleanNumber;
                         }
-                        url = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encodedText}`;
+                      }
+                      
+                      let url = '';
+                      if (mode === 'web') {
+                        url = cleanNumber 
+                          ? `https://web.whatsapp.com/send?phone=${cleanNumber}&text=${encodedText}`
+                          : `https://web.whatsapp.com/send?text=${encodedText}`;
+                      } else if (mode === 'wa') {
+                        url = cleanNumber
+                          ? `https://wa.me/${cleanNumber}?text=${encodedText}`
+                          : `https://wa.me/?text=${encodedText}`;
+                      } else {
+                        url = cleanNumber
+                          ? `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encodedText}`
+                          : `https://api.whatsapp.com/send?text=${encodedText}`;
                       }
                       window.open(url, '_blank');
                       // Update status to shared
@@ -2261,6 +2280,7 @@ function SettingsPage() {
   // --- Data & Privacy ---
   const [historyRetention, setHistoryRetention] = useState(() => localStorage.getItem('settings_historyRetention') || '90');
   const [showWhatsapp, setShowWhatsapp] = useState(() => localStorage.getItem('settings_showWhatsapp') !== 'false');
+  const [whatsappMode, setWhatsappMode] = useState(() => localStorage.getItem('settings_whatsappMode') || 'web');
 
   // --- UI state ---
   const [alert, setAlert] = useState({ msg: '', type: 'success' });
@@ -2301,6 +2321,7 @@ function SettingsPage() {
     localStorage.setItem('settings_autoSave', autoSaveForms);
     localStorage.setItem('settings_historyRetention', historyRetention);
     localStorage.setItem('settings_showWhatsapp', showWhatsapp);
+    localStorage.setItem('settings_whatsappMode', whatsappMode);
     showAlert('All settings saved successfully!');
   };
 
@@ -2522,6 +2543,24 @@ function SettingsPage() {
               </div>
               <Toggle id="whatsapp-toggle" checked={showWhatsapp} onChange={setShowWhatsapp} />
             </div>
+
+            {showWhatsapp && (
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl space-y-3 transition-all duration-300">
+                <div>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">WhatsApp Redirection Mode</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Choose which WhatsApp method to use for sending greetings</p>
+                </div>
+                <select 
+                  value={whatsappMode} 
+                  onChange={e => setWhatsappMode(e.target.value)} 
+                  className={selectCls}
+                >
+                  <option value="web">Direct WhatsApp Web (web.whatsapp.com) - Best for Desktop</option>
+                  <option value="api">Standard API Redirect (api.whatsapp.com)</option>
+                  <option value="wa">Shortened URL Redirect (wa.me) - Mobile Friendly</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
 
