@@ -66,44 +66,9 @@ const initialTemplates = [
   }
 ];
 
-const initialGreetings = [
-  {
-    id: 'g1',
-    user_id: 'd2903b4b-48ab-46cb-8b8f-c20d8c4a0a0f',
-    customer_name: 'Ravi Kumar',
-    destination: 'Tirupati',
-    travel_date: '2026-06-25',
-    booking_history: '3 Previous Trips',
-    travel_type: 'Family Trip',
-    language: 'English',
-    category: 'VIP',
-    special_notes: 'Require ground floor hotel rooms.',
-    generated_text: `Hello Ravi Kumar,
+const initialGreetings = [];
 
-Thank you once again for choosing Manivtha Tours & Travels.
-
-We are delighted to assist you on your upcoming family trip to Tirupati scheduled for June 25, 2026. As one of our valued VIP returning customers, we truly appreciate your trust in our services. 
-
-We have noted your instruction: "Require ground floor hotel rooms." and will coordinate to accommodate this.
-
-We wish you and your family a safe, comfortable, and memorable journey.
-
-Warm Regards,
-Manivtha Tours & Travels`,
-    status: 'shared',
-    created_at: new Date('2026-06-09T10:00:00Z').toISOString()
-  }
-];
-
-const initialFeedback = [
-  {
-    id: 'f1',
-    greeting_id: 'g1',
-    rating: 5,
-    comments: 'Perfect personalized message, direct click to WhatsApp shared successfully!',
-    created_at: new Date('2026-06-09T10:05:00Z').toISOString()
-  }
-];
+const initialFeedback = [];
 
 // Read helper with JSON parse & folder creation
 function readJSONFile(filePath, defaultValue) {
