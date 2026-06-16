@@ -125,7 +125,11 @@ app.post('/api/auth/login', async (req, res) => {
 
 // GET /api/health (Uptime Monitor)
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date(), uptime: process.uptime() });
+  res.json({
+    status: 'OK',
+    timestamp: new Date(),
+    uptime: process.uptime()
+  });
 });
 
 // POST /api/generate (Generate greeting)
