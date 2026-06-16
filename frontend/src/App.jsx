@@ -233,6 +233,9 @@ function Layout({ children }) {
 
   const location = useLocation();
 
+  const [sidebarHovered, setSidebarHovered] = useState(false);
+  const isExpanded = isMobile ? sidebarOpen : (sidebarOpen || sidebarHovered);
+
   // Widths
   const EXPANDED  = 256; // 16rem
   const COLLAPSED = 64;  // 4rem  — icon rail on desktop
@@ -244,8 +247,8 @@ function Layout({ children }) {
   // Sidebar actual rendered width (mobile always 256 when open, 0 when closed)
   // Desktop: 256 expanded, 64 collapsed (never hidden)
   const sidebarWidth  = isMobile
-    ? (sidebarOpen ? EXPANDED : 0)
-    : (sidebarOpen ? EXPANDED : COLLAPSED);
+    ? (isExpanded ? EXPANDED : 0)
+    : (isExpanded ? EXPANDED : COLLAPSED);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 transition-colors duration-200">
@@ -254,7 +257,7 @@ function Layout({ children }) {
       {isMobile && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className={`fixed inset-0 z-30 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+          className={`fixed inset-0 z-30 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 ${isExpanded ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         />
       )}
 
@@ -264,6 +267,8 @@ function Layout({ children }) {
           Desktop → fixed left column, collapses to icon-rail
       ═══════════════════════════════════════ */}
       <aside
+        onMouseEnter={() => !isMobile && setSidebarHovered(true)}
+        onMouseLeave={() => !isMobile && setSidebarHovered(false)}
         style={{ width: `${sidebarWidth}px` }}
         className={`
           fixed top-0 left-0 h-full z-40
@@ -272,7 +277,7 @@ function Layout({ children }) {
           border-r border-slate-200 dark:border-slate-800
           transition-all duration-300 ease-in-out
           overflow-hidden
-          ${isMobile && !sidebarOpen ? '-translate-x-full' : 'translate-x-0'}
+          ${isMobile && !isExpanded ? '-translate-x-full' : 'translate-x-0'}
         `}
       >
         {/* Brand / Logo row */}
@@ -280,7 +285,7 @@ function Layout({ children }) {
           <div className="h-8 w-8 shrink-0 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-base select-none">
             M
           </div>
-          <span className={`font-display font-bold text-[15px] text-slate-900 dark:text-white whitespace-nowrap transition-all duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
+          <span className={`font-display font-bold text-[15px] text-slate-900 dark:text-white whitespace-nowrap transition-all duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
             Manivtha CRM
           </span>
         </div>
@@ -293,7 +298,7 @@ function Layout({ children }) {
               <Link
                 key={item.name}
                 to={item.path}
-                title={!sidebarOpen && !isMobile ? item.name : undefined}
+                title={!isExpanded && !isMobile ? item.name : undefined}
                 onClick={() => isMobile && setSidebarOpen(false)}
                 className={`
                   group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
@@ -309,12 +314,12 @@ function Layout({ children }) {
 
                 <item.icon className={`h-5 w-5 shrink-0 transition-colors ${isActive ? 'text-indigo-500' : ''}`} />
 
-                <span className={`whitespace-nowrap transition-all duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
+                <span className={`whitespace-nowrap transition-all duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
                   {item.name}
                 </span>
 
                 {/* Tooltip shown in collapsed desktop mode */}
-                {!sidebarOpen && !isMobile && (
+                {!isExpanded && !isMobile && (
                   <span className="
                     pointer-events-none absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50
                     px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap
@@ -335,14 +340,14 @@ function Layout({ children }) {
         <div className="px-2 py-4 border-t border-slate-200 dark:border-slate-800 shrink-0">
           <button
             onClick={() => { logout(); navigate('/login'); }}
-            title={!sidebarOpen && !isMobile ? 'Sign Out' : undefined}
+            title={!isExpanded && !isMobile ? 'Sign Out' : undefined}
             className="group relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-rose-500 hover:bg-rose-500/10 transition-colors duration-150"
           >
             <LogOut className="h-5 w-5 shrink-0" />
-            <span className={`whitespace-nowrap transition-all duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
+            <span className={`whitespace-nowrap transition-all duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
               Sign Out
             </span>
-            {!sidebarOpen && !isMobile && (
+            {!isExpanded && !isMobile && (
               <span className="
                 pointer-events-none absolute left-full ml-2 top-1/2 -translate-y-1/2 z-50
                 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap
