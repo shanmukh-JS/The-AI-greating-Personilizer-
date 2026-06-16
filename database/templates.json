@@ -1,0 +1,35 @@
+[
+  {
+    "id": "t1010101-1111-2222-3333-444455556666",
+    "title": "Standard Pre-Trip Greeting",
+    "description": "General template for all travel types",
+    "subject_pattern": "Greeting for {{CustomerName}}",
+    "body_pattern": "Hello {{CustomerName}},\n\nThank you for choosing Manivtha Tours & Travels for your upcoming journey to {{Destination}}.\n\nWe hope you have an incredible travel experience. Let us know if you need any assistance.\n\nRegards,\nManivtha Tours & Travels",
+    "language": "English",
+    "is_active": true,
+    "created_at": "2026-05-15T11:00:00.000Z",
+    "updated_at": "2026-05-15T11:00:00.000Z"
+  },
+  {
+    "id": "t2020202-2222-3333-4444-555566667777",
+    "title": "VIP Spiritual Journey",
+    "description": "Tailored spiritual tone for holy cities",
+    "subject_pattern": "Spiritual greetings for {{CustomerName}}",
+    "body_pattern": "Namaste {{CustomerName}},\n\nWe are honored to assist in facilitating your sacred journey to {{Destination}}.\n\nAs one of our returning customers, we have arranged the primary details to ensure absolute peace of mind during your spiritual tour.\n\nMay your pilgrimage be deeply rewarding.\n\nRegards,\nManivtha Tours & Travels",
+    "language": "English",
+    "is_active": true,
+    "created_at": "2026-05-16T12:00:00.000Z",
+    "updated_at": "2026-05-16T12:00:00.000Z"
+  },
+  {
+    "id": "7e0dc242-1adb-4cfa-8968-ffeb4e3fbfc9",
+    "is_active": true,
+    "created_at": "2026-06-15T16:36:50.198Z",
+    "updated_at": "2026-06-15T16:36:50.198Z",
+    "title": "ram",
+    "description": "hello",
+    "subject_pattern": "for",
+    "body_pattern": "naofnaoef",
+    "language": "English"
+  }
+]

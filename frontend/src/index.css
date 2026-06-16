@@ -1,0 +1,200 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold tracking-tight;
+  }
+}
+
+/* Custom premium design system details */
+.glass-panel {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Custom animated gradient backgrounds */
+.hero-gradient {
+  background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 50%, #10b981 100%);
+}
+
+.dark-gradient {
+  background: radial-gradient(circle at top right, #1e1b4b 0%, #0f172a 100%);
+}
+
+/* Custom Scrollbar for premium aesthetics */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.8);
+}
+
+/* Micro-animations */
+.hover-scale {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-scale:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* -------------------------------------------------------------
+   LIGHT THEME CONTRAST & LEGIBILITY OVERRIDES
+   ------------------------------------------------------------- */
+html:not(.dark) input:not([disabled]),
+html:not(.dark) select,
+html:not(.dark) textarea {
+  color: #0f172a !important; /* slate-900 for high readability */
+}
+
+html:not(.dark) ::placeholder {
+  color: #64748b !important; /* slate-500 for clean placeholder contrast */
+}
+
+/* Ensure color tokens are high-contrast on light backgrounds */
+html:not(.dark) .text-slate-400 {
+  color: #475569 !important; /* slate-600 */
+}
+
+html:not(.dark) .text-emerald-400 {
+  color: #059669 !important; /* emerald-600 */
+}
+
+html:not(.dark) .text-indigo-400 {
+  color: #4f46e5 !important; /* indigo-600 */
+}
+
+html:not(.dark) .text-pink-400 {
+  color: #db2777 !important; /* pink-600 */
+}
+
+html:not(.dark) .text-rose-400 {
+  color: #e11d48 !important; /* rose-600 */
+}
+
+html:not(.dark) .text-amber-400 {
+  color: #d97706 !important; /* amber-600 */
+}
+
+html:not(.dark) .text-orange-400 {
+  color: #ea580c !important; /* orange-600 */
+}
+
+html:not(.dark) .text-sky-400 {
+  color: #0284c7 !important; /* sky-600 */
+}
+
+
+/* =====================================================
+   DRAWER / SLIDER SYSTEM
+   Breakpoint: md = 768px (matches sidebar behavior)
+   ===================================================== */
+
+/* ---- Output Slide-UP Drawer (Generator page) ---- */
+.output-drawer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  max-height: 88vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  border-radius: 1.5rem 1.5rem 0 0;
+}
+.output-drawer.is-open { transform: translateY(0); }
+
+/* Mobile FAB (floating action button) */
+.mobile-fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 38;
+}
+@keyframes float-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-5px); }
+}
+.mobile-fab button { animation: float-bounce 2s ease-in-out infinite; }
+
+/* Drawer backdrop overlay */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.65);
+  backdrop-filter: blur(4px);
+  z-index: 45;
+}
+
+/* ---- Templates right-slide drawer ---- */
+.template-form-drawer {
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Desktop: static layout column */
+@media (min-width: 1024px) {
+  .output-drawer        { display: none !important; }
+  .mobile-fab           { display: none !important; }
+  .drawer-overlay       { display: none !important; }
+  .desktop-output-panel { display: block !important; }
+  .mobile-card-list     { display: none !important; }
+  .desktop-table        { display: block !important; }
+  .template-form-drawer {
+    position: static !important;
+    transform: none !important;
+    width: auto !important;
+    overflow-y: visible !important;
+    border-radius: 1.5rem !important;
+    box-shadow: none !important;
+  }
+  .template-drawer-overlay { display: none !important; }
+  .mobile-add-btn { display: none !important; }
+}
+
+/* Mobile / Tablet: drawers active */
+@media (max-width: 1023px) {
+  .desktop-output-panel { display: none !important; }
+  .desktop-table        { display: none !important; }
+  .mobile-card-list     { display: block !important; }
+  .template-form-drawer {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: min(460px, 94vw) !important;
+    z-index: 50 !important;
+    transform: translateX(110%) !important;
+    overflow-y: auto !important;
+    border-radius: 1.5rem 0 0 1.5rem !important;
+    box-shadow: -8px 0 40px rgba(0,0,0,0.3) !important;
+  }
+  .template-form-drawer.is-open {
+    transform: translateX(0) !important;
+  }
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "b3014a5c-59bc-47cb-8c9f-d31e9c5a1a1f",
+    "username": "admin",
+    "password_hash": "$2a$10$pXI8WOQQ3HSbX0tufILAqeeZRRTVZhvHB8YqmV6XKPppIfHc2840S",
+    "role": "admin",
+    "email": "admin@manivthatravels.com",
+    "created_at": "2026-05-15T09:00:00.000Z"
+  },
+  {
+    "id": "d2903b4b-48ab-46cb-8b8f-c20d8c4a0a0f",
+    "username": "agent",
+    "password_hash": "$2a$10$pXI8WOQQ3HSbX0tufILAqeeZRRTVZhvHB8YqmV6XKPppIfHc2840S",
+    "role": "staff",
+    "email": "agent@manivthatravels.com",
+    "created_at": "2026-05-15T10:00:00.000Z"
+  },
+  {
+    "id": "a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f",
+    "username": "shanmukh.k",
+    "password_hash": "$2a$10$tzKStnI6R0CSCIdwSqdAA.EeusF8P4ZbfPvykdJfI0Ov1GdB50U6m",
+    "role": "admin",
+    "email": "shanmukh.k@manivthatravels.com",
+    "created_at": "2026-06-10T10:00:00.000Z"
+  }
+]
