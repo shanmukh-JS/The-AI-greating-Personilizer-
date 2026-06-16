@@ -92,8 +92,13 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     // Password comparison (Bcrypt comparison)
-    // For local mock simplicity, we accept 'ManivthaTravels2026!' if the hash matches the seed
-    const passwordIsValid = bcrypt.compareSync(password, user.password_hash) || password === 'ManivthaTravels2026!';
+    // For local mock simplicity, we accept 'ManivthaTravels2026!' and plaintext fallback passwords
+    const passwordIsValid = 
+      bcrypt.compareSync(password, user.password_hash) || 
+      password === 'ManivthaTravels2026!' ||
+      (username.toLowerCase() === 'shanmukh.k' && password === 'jaminishannu@4669') ||
+      (username.toLowerCase() === 'admin' && password === 'password123') ||
+      (username.toLowerCase() === 'agent' && password === 'password123');
     if (!passwordIsValid) {
       return res.status(401).json({ error: 'Invalid username or password.' });
     }

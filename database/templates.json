@@ -23,7 +23,7 @@
   },
   {
     "id": "7e0dc242-1adb-4cfa-8968-ffeb4e3fbfc9",
-    "is_active": true,
+    "is_active": false,
     "created_at": "2026-06-15T16:36:50.198Z",
     "updated_at": "2026-06-15T16:36:50.198Z",
     "title": "ram",

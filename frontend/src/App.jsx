@@ -61,8 +61,23 @@ export function AuthProvider({ children }) {
           const res = await api.get('/profile');
           setUser(res.data);
         } catch (e) {
-          console.warn("Session expired or API offline, cleaning storage token");
-          logout();
+          if (e.response && (e.response.status === 401 || e.response.status === 403)) {
+            console.warn("Session expired, cleaning storage token");
+            logout();
+          } else {
+            console.warn("API offline, keeping session token and decoding JWT payload locally");
+            try {
+              const base64Url = token.split('.')[1];
+              const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+              const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+              }).join(''));
+              setUser(JSON.parse(jsonPayload));
+            } catch (err) {
+              console.error("Failed to parse JWT payload offline", err);
+              logout();
+            }
+          }
         }
       }
       setLoading(false);
@@ -78,8 +93,16 @@ export function AuthProvider({ children }) {
       setUser(res.data.user);
       return { success: true };
     } catch (err) {
-      console.warn("API Login failed, triggering simulated authentications...");
-      // Simulation fallback for standalone runs
+      if (err.response) {
+        // API responded with an error (e.g. 401 Unauthorized due to bad password), do not fallback to simulation
+        return { 
+          success: false, 
+          error: err.response.data?.error || 'Invalid username or password.' 
+        };
+      }
+      
+      console.warn("API Login failed (network offline), triggering simulated authentications...");
+      // Simulation fallback for standalone runs when backend is offline
       if (username === 'agent' || username === 'admin' || username === 'shanmukh.k') {
         const dummyToken = `simulated_jwt_token_${username}`;
         const dummyUser = {
@@ -97,7 +120,7 @@ export function AuthProvider({ children }) {
       }
       return { 
         success: false, 
-        error: err.response?.data?.error || 'Invalid username or password.' 
+        error: 'Invalid username or password.' 
       };
     }
   };
