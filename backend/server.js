@@ -122,6 +122,9 @@ app.post('/api/auth/login', async (req, res) => {
     res.status(500).json({ error: 'Internal server error during authentication.' });
   }
 });
+app.get('/', (req, res) => {
+  res.send('Backend Working');
+});
 
 // GET /api/health (Uptime Monitor)
 app.get('/api/health', (req, res) => {
