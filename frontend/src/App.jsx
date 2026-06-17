@@ -750,7 +750,7 @@ function Dashboard() {
       setLoading(true);
       try {
         const res = await api.get('/analytics', {
-          params: { category, language, travelType }
+          params: { category, language, travelType, tzOffset: new Date().getTimezoneOffset() }
         });
         setMetrics(res.data);
       } catch (err) {

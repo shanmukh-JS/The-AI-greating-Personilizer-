@@ -277,8 +277,8 @@ app.post('/api/feedback', authenticateToken, async (req, res) => {
 // GET /api/analytics (Fetch reports summaries)
 app.get('/api/analytics', authenticateToken, async (req, res) => {
   try {
-    const { category, language, travelType } = req.query;
-    const data = await db.getAnalyticsData({ category, language, travelType });
+    const { category, language, travelType, tzOffset } = req.query;
+    const data = await db.getAnalyticsData({ category, language, travelType, tzOffset });
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: 'Failed to aggregate analytics reports.' });

@@ -413,29 +413,34 @@ async function getAnalyticsData(filters = {}) {
   // Daily volume mapping (last 7 days dynamic calculation based on filtered greetings)
   const dailyUsage = [];
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const now = new Date();
+  
+  const offsetMinutes = parseInt(filters.tzOffset || 0, 10);
+  const nowUtcMillis = Date.now();
+  const localNowMillis = nowUtcMillis - (offsetMinutes * 60000);
+  const now = new Date(localNowMillis);
   
   for (let i = 6; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(now.getDate() - i);
-    const dayName = daysOfWeek[d.getDay()];
-    const localYear = d.getFullYear();
-    const localMonth = String(d.getMonth() + 1).padStart(2, '0');
-    const localDay = String(d.getDate()).padStart(2, '0');
+    const d = new Date(localNowMillis);
+    d.setUTCDate(d.getUTCDate() - i);
+    
+    const dayName = daysOfWeek[d.getUTCDay()];
+    const localYear = d.getUTCFullYear();
+    const localMonth = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const localDay = String(d.getUTCDate()).padStart(2, '0');
     const dateStr = `${localYear}-${localMonth}-${localDay}`;
     
     const count = filteredGreetings.filter(g => {
       if (!g.created_at) return false;
-      const gDateObj = new Date(g.created_at);
-      const gYear = gDateObj.getFullYear();
-      const gMonth = String(gDateObj.getMonth() + 1).padStart(2, '0');
-      const gDay = String(gDateObj.getDate()).padStart(2, '0');
+      const gDateObj = new Date(new Date(g.created_at).getTime() - (offsetMinutes * 60000));
+      const gYear = gDateObj.getUTCFullYear();
+      const gMonth = String(gDateObj.getUTCMonth() + 1).padStart(2, '0');
+      const gDay = String(gDateObj.getUTCDate()).padStart(2, '0');
       const gDate = `${gYear}-${gMonth}-${gDay}`;
       return gDate === dateStr;
     }).length;
     
     dailyUsage.push({
-      date: `${dayName} ${d.getDate()}`,
+      date: `${dayName} ${d.getUTCDate()}`,
       count: count
     });
   }
