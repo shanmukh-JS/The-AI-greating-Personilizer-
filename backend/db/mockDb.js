@@ -34,10 +34,10 @@ const initialUsers = [
   },
   {
     id: 'a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f',
-    username: 'shanmukh.k',
-    password_hash: '$2a$10$tzKStnI6R0CSCIdwSqdAA.EeusF8P4ZbfPvykdJfI0Ov1GdB50U6m', // hash for jaminishannu@4669
+    username: 'NIAT x AURORA',
+    password_hash: '$2a$10$VRhcEGdTgmeNK8kdoQOC5eC22.XvkXIZRHRScnq/2Rt9c/sl7c6mK', // hash for nxtwave@2026
     role: 'admin',
-    email: 'shanmukh.k@manivthatravels.com',
+    email: 'niatxaurora@manivthatravels.com',
     created_at: new Date('2026-06-10T10:00:00Z').toISOString()
   }
 ];

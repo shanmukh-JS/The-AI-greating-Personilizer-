@@ -46,11 +46,11 @@ export function AuthProvider({ children }) {
             : 'agent'; // fallback if legacy exact string matches
           const dummyUser = {
             id: username === 'admin' ? 'b3014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
-                username === 'shanmukh.k' ? 'a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
+                username === 'NIAT x AURORA' ? 'a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
                 'd2903b4b-48ab-46cb-8b8f-c20d8c4a0a0f',
             username,
-            role: (username === 'admin' || username === 'shanmukh.k') ? 'admin' : 'staff',
-            email: `${username}@manivthatravels.com`
+            role: (username === 'admin' || username === 'NIAT x AURORA') ? 'admin' : 'staff',
+            email: username === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${username}@manivthatravels.com`
           };
           setUser(dummyUser);
           setLoading(false);
@@ -106,17 +106,17 @@ export function AuthProvider({ children }) {
       // Simulation fallback for standalone runs when backend is offline
       const isValidAgent = username === 'agent' && (password === 'password123' || password === 'ManivthaTravels2026!');
       const isValidAdmin = username === 'admin' && (password === 'password123' || password === 'ManivthaTravels2026!');
-      const isValidShanmukh = username === 'shanmukh.k' && password === 'jaminishannu@4669';
+      const isValidNiatAurora = username === 'NIAT x AURORA' && password === 'nxtwave@2026';
 
-      if (isValidAgent || isValidAdmin || isValidShanmukh) {
+      if (isValidAgent || isValidAdmin || isValidNiatAurora) {
         const dummyToken = `simulated_jwt_token_${username}`;
         const dummyUser = {
           id: isValidAdmin ? 'b3014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
-              isValidShanmukh ? 'a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
+              isValidNiatAurora ? 'a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
               'd2903b4b-48ab-46cb-8b8f-c20d8c4a0a0f',
           username,
-          role: (isValidAdmin || isValidShanmukh) ? 'admin' : 'staff',
-          email: `${username}@manivthatravels.com`
+          role: (isValidAdmin || isValidNiatAurora) ? 'admin' : 'staff',
+          email: username === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${username}@manivthatravels.com`
         };
         localStorage.setItem('token', dummyToken);
         setToken(dummyToken);
@@ -616,9 +616,9 @@ function LoginPage() {
               <span className="text-[11px] font-extrabold text-[#759AF1] tracking-wider uppercase mb-1">Admin</span>
               <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors">admin / password123</span>
             </button>
-            <button type="button" onClick={() => handleQuickDemo('shanmukh.k', 'jaminishannu@4669')} className="col-span-2 flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
+            <button type="button" onClick={() => handleQuickDemo('NIAT x AURORA', 'nxtwave@2026')} className="col-span-2 flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
               <span className="text-[11px] font-extrabold text-[#14B8E6] tracking-wider uppercase mb-1">Master Admin</span>
-              <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors">shanmukh.k / jaminishannu@4669</span>
+              <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors">NIAT x AURORA / nxtwave@2026</span>
             </button>
           </div>
         </div>
