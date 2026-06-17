@@ -240,12 +240,12 @@ function Layout({ children }) {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname === '/dashboard') {
+    if (location.pathname === '/dashboard' && !isMobile) {
       setSidebarOpen(true);
     } else {
       setSidebarOpen(false);
     }
-  }, [location.pathname]);
+  }, [location.pathname, isMobile]);
 
   // On desktop, sidebar expands on hover OR when explicitly opened
   const isExpanded = isMobile ? sidebarOpen : (sidebarOpen || hoverExpanded);
