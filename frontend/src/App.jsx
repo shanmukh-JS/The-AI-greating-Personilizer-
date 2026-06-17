@@ -1815,6 +1815,7 @@ function GreetingGenerator() {
     try {
       const res = await api.get('/presets');
       setPresets(res.data);
+      localStorage.setItem('custom_presets', JSON.stringify(res.data));
     } catch (e) {
       console.warn("API offline, falling back to local storage presets");
       let local = [];
@@ -2979,16 +2980,39 @@ function TemplatesManager() {
     try {
       const res = await api.get('/templates');
       setTemplates(res.data);
+      localStorage.setItem('custom_templates', JSON.stringify(res.data));
     } catch (e) {
       console.warn("API offline, rendering simulated templates");
-      setTemplates([
-        {
-          id: 't1010101-1111-2222-3333-444455556666',
-          title: 'Standard Pre-Trip Greeting',
-          description: 'General template for all travel types',
-          subject_pattern: 'Greeting for {{CustomerName}}',
-          body_pattern: 'Hello {{CustomerName}},\n\nThank you for choosing Manivtha Tours & Travels for your upcoming journey to {{Destination}}.\n\nWe hope you have an incredible travel experience. Let us know if you need any assistance.\n\nRegards,\nManivtha Tours & Travels',
-          language: 'English'
+      let local = [];
+      if (typeof window !== 'undefined') {
+        local = JSON.parse(localStorage.getItem('custom_templates') || '[]');
+      }
+      if (local.length === 0 && !localStorage.getItem('custom_templates_initialized')) {
+        local = [
+          {
+            id: 't1010101-1111-2222-3333-444455556666',
+            title: 'Standard Pre-Trip Greeting',
+            description: 'General template for all travel types',
+            subject_pattern: 'Greeting for {{CustomerName}}',
+            body_pattern: 'Hello {{CustomerName}},\n\nThank you for choosing Manivtha Tours & Travels for your upcoming journey to {{Destination}}.\n\nWe hope you have an incredible travel experience. Let us know if you need any assistance.\n\nRegards,\nManivtha Tours & Travels',
+            language: 'English',
+            is_active: true
+          },
+          {
+            id: 't2020202-2222-3333-4444-555566667777',
+            title: 'VIP Spiritual Journey',
+            description: 'Tailored spiritual tone for holy cities',
+            subject_pattern: 'Spiritual greetings for {{CustomerName}}',
+            body_pattern: 'Namaste {{CustomerName}},\n\nWe are honored to assist in facilitating your sacred journey to {{Destination}}.\n\nAs one of our returning customers, we have arranged the primary details to ensure absolute peace of mind during your spiritual tour.\n\nMay your pilgrimage be deeply rewarding.\n\nRegards,\nManivtha Tours & Travels',
+            language: 'English',
+            is_active: true
+          }
+        ];
+        localStorage.setItem('custom_templates', JSON.stringify(local));
+        localStorage.setItem('custom_templates_initialized', 'true');
+      }
+      setTemplates(local);
+        },
         },
         {
           id: 't2020202-2222-3333-4444-555566667777',
@@ -3024,13 +3048,16 @@ function TemplatesManager() {
       setIsDrawerOpen(false);
     } catch (err) {
       // Offline/Local Simulated Saves
+      let updated;
       if (editingId) {
-        setTemplates(templates.map(t => t.id === editingId ? { ...t, ...payload } : t));
+        updated = templates.map(t => t.id === editingId ? { ...t, ...payload } : t);
         setAlert("Template updated successfully (Simulated)!");
       } else {
-        setTemplates([...templates, { id: 'sim_t' + Math.random(), ...payload }]);
+        updated = [...templates, { id: 'sim_t' + Date.now(), ...payload }];
         setAlert("Template created successfully (Simulated)!");
       }
+      setTemplates(updated);
+      localStorage.setItem('custom_templates', JSON.stringify(updated));
       resetForm();
       setIsDrawerOpen(false);
     }
@@ -3053,7 +3080,9 @@ function TemplatesManager() {
     }
     if (window.confirm("Are you sure you want to delete this template?")) {
       // Immediately remove from UI
-      setTemplates(prev => prev.filter(t => t.id !== id));
+      const updated = templates.filter(t => t.id !== id);
+      setTemplates(updated);
+      localStorage.setItem('custom_templates', JSON.stringify(updated));
       setAlert("Template deleted.");
       try {
         await api.delete(`/templates/${id}`);
