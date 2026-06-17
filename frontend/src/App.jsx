@@ -3012,17 +3012,6 @@ function TemplatesManager() {
         localStorage.setItem('custom_templates_initialized', 'true');
       }
       setTemplates(local);
-        },
-        },
-        {
-          id: 't2020202-2222-3333-4444-555566667777',
-          title: 'VIP Spiritual Journey',
-          description: 'Tailored spiritual tone for holy cities',
-          subject_pattern: 'Spiritual greetings for {{CustomerName}}',
-          body_pattern: 'Namaste {{CustomerName}},\n\nWe are honored to assist in facilitating your sacred journey to {{Destination}}.\n\nAs one of our returning customers, we have arranged the primary details to ensure absolute peace of mind during your spiritual tour.\n\nMay your pilgrimage be deeply rewarding.\n\nRegards,\nManivtha Tours & Travels',
-          language: 'English'
-        }
-      ]);
     }
     setLoading(false);
   }
