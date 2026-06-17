@@ -381,28 +381,47 @@ async function getAnalyticsData(filters = {}) {
     filteredGreetings = filteredGreetings.filter(g => g.travel_type === filters.travelType);
   }
 
-  const totalGreetings = filteredGreetings.length;
+  const offsetMinutes = parseInt(filters.tzOffset || 0, 10);
+  const nowUtcMillis = Date.now();
+  const localNowMillis = nowUtcMillis - (offsetMinutes * 60000);
+  const now = new Date(localNowMillis);
   
-  // Calculate average rating for filtered greetings
-  const filteredGreetingIds = new Set(filteredGreetings.map(g => g.id));
-  const filteredFeedback = feedbackTable.filter(f => filteredGreetingIds.has(f.greeting_id));
+  const todayYear = now.getUTCFullYear();
+  const todayMonth = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const todayDay = String(now.getUTCDate()).padStart(2, '0');
+  const todayDateStr = `${todayYear}-${todayMonth}-${todayDay}`;
 
-  const ratings = filteredFeedback.map(f => f.rating);
+  const todayGreetings = filteredGreetings.filter(g => {
+    if (!g.created_at) return false;
+    const gDateObj = new Date(new Date(g.created_at).getTime() - (offsetMinutes * 60000));
+    const gYear = gDateObj.getUTCFullYear();
+    const gMonth = String(gDateObj.getUTCMonth() + 1).padStart(2, '0');
+    const gDay = String(gDateObj.getUTCDate()).padStart(2, '0');
+    return `${gYear}-${gMonth}-${gDay}` === todayDateStr;
+  });
+
+  const totalGreetings = todayGreetings.length;
+  
+  // Calculate average rating for today's greetings
+  const todayGreetingIds = new Set(todayGreetings.map(g => g.id));
+  const todayFeedback = feedbackTable.filter(f => todayGreetingIds.has(f.greeting_id));
+
+  const ratings = todayFeedback.map(f => f.rating);
   const averageRating = ratings.length ? parseFloat((ratings.reduce((sum, r) => sum + r, 0) / ratings.length).toFixed(1)) : 0;
 
-  // Calculate top destinations
+  // Calculate top destinations (All destinations for today)
   const destCount = {};
-  filteredGreetings.forEach(g => {
+  todayGreetings.forEach(g => {
     destCount[g.destination] = (destCount[g.destination] || 0) + 1;
   });
   const topDestinations = Object.keys(destCount).map(name => ({
     name,
     count: destCount[name]
-  })).sort((a, b) => b.count - a.count).slice(0, 5);
+  })).sort((a, b) => b.count - a.count);
 
-  // Group by travel category
+  // Group by travel category for today
   const categoryCount = {};
-  filteredGreetings.forEach(g => {
+  todayGreetings.forEach(g => {
     categoryCount[g.category] = (categoryCount[g.category] || 0) + 1;
   });
   const topCategories = Object.keys(categoryCount).map(name => ({
@@ -413,11 +432,6 @@ async function getAnalyticsData(filters = {}) {
   // Daily volume mapping (last 7 days dynamic calculation based on filtered greetings)
   const dailyUsage = [];
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  
-  const offsetMinutes = parseInt(filters.tzOffset || 0, 10);
-  const nowUtcMillis = Date.now();
-  const localNowMillis = nowUtcMillis - (offsetMinutes * 60000);
-  const now = new Date(localNowMillis);
   
   for (let i = 6; i >= 0; i--) {
     const d = new Date(localNowMillis);
