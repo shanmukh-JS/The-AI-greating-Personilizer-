@@ -237,8 +237,15 @@ function Layout({ children }) {
     { name: 'User Profile',       path: '/profile',    icon: User            },
     { name: 'Settings',           path: '/settings',   icon: Settings        },
   ];
-
   const location = useLocation();
+
+  useEffect(() => {
+    if (location.pathname === '/dashboard') {
+      setSidebarOpen(true);
+    } else {
+      setSidebarOpen(false);
+    }
+  }, [location.pathname]);
 
   // On desktop, sidebar expands on hover OR when explicitly opened
   const isExpanded = isMobile ? sidebarOpen : (sidebarOpen || hoverExpanded);
