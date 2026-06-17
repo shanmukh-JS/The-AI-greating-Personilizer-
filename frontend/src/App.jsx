@@ -807,7 +807,7 @@ function Dashboard() {
             const gDate = `${gYear}-${gMonth}-${gDay}`;
             return gDate === dateStr;
           }).length;
-          dailyUsage.push({ date: dayName, count });
+          dailyUsage.push({ date: `${dayName} ${d.getDate()}`, count });
         }
         
         const recentFeedbacks = filteredFeedback.map(fb => {
@@ -1252,7 +1252,8 @@ function Dashboard() {
                   { date: 'Wed', count: 8 }, { date: 'Thu', count: 5 }, { date: 'Fri', count: 9 }, { date: 'Sat', count: 4 }
                 ]);
             const maxVal = Math.max(...displayUsage.map(d => d.count)) || 1;
-            const todayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
+            const _now = new Date();
+            const todayName = `${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][_now.getDay()]} ${_now.getDate()}`;
             return (
               <div className="w-full h-56 flex items-end justify-between px-2 pb-2 relative">
                 {/* Grid background lines */}
