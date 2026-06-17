@@ -771,29 +771,15 @@ function Dashboard() {
           allGreetings = allGreetings.filter(g => g.travel_type === travelType);
         }
         
-        const todayYear = new Date().getFullYear();
-        const todayMonth = String(new Date().getMonth() + 1).padStart(2, '0');
-        const todayDay = String(new Date().getDate()).padStart(2, '0');
-        const todayDateStr = `${todayYear}-${todayMonth}-${todayDay}`;
-
-        const todayGreetings = allGreetings.filter(g => {
-          if (!g.created_at) return false;
-          const gDateObj = new Date(g.created_at);
-          const gYear = gDateObj.getFullYear();
-          const gMonth = String(gDateObj.getMonth() + 1).padStart(2, '0');
-          const gDay = String(gDateObj.getDate()).padStart(2, '0');
-          return `${gYear}-${gMonth}-${gDay}` === todayDateStr;
-        });
-
-        const totalGreetings = todayGreetings.length;
+        const totalGreetings = allGreetings.length;
         
-        const greetingIds = new Set(todayGreetings.map(g => g.id));
+        const greetingIds = new Set(allGreetings.map(g => g.id));
         const filteredFeedback = allFeedbacks.filter(f => greetingIds.has(f.greeting_id));
         const ratings = filteredFeedback.map(f => f.rating);
         const averageRating = ratings.length ? parseFloat((ratings.reduce((sum, r) => sum + r, 0) / ratings.length).toFixed(1)) : 0;
         
         const destCount = {};
-        todayGreetings.forEach(g => {
+        allGreetings.forEach(g => {
           destCount[g.destination] = (destCount[g.destination] || 0) + 1;
         });
         const topDestinations = Object.keys(destCount).map(name => ({
@@ -1171,7 +1157,7 @@ function Dashboard() {
           </div>
           <div className="mt-4">
             <p className="text-3xl font-extrabold font-display text-slate-900 dark:text-white">{metrics?.totalGreetings || 12}</p>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-1">Today's Greetings</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-1">Total Greetings</p>
           </div>
         </div>
 
@@ -1189,7 +1175,7 @@ function Dashboard() {
             <p className="text-3xl font-extrabold font-display text-slate-900 dark:text-white">
               {metrics?.averageRating || 4.2}<span className="text-sm font-semibold text-slate-500">/5</span>
             </p>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-1">Today's Avg Rating</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-1">Average Rating</p>
           </div>
         </div>
 
@@ -1205,7 +1191,7 @@ function Dashboard() {
           </div>
           <div className="mt-4">
             <p className="text-3xl font-extrabold font-display text-slate-900 dark:text-white">{metrics?.feedbackCount || 5}</p>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-1">Today's Feedback</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-1">Total Feedback</p>
           </div>
         </div>
 
@@ -1309,7 +1295,7 @@ function Dashboard() {
         <div onClick={() => { if (user?.role === 'admin') setExpandedCard('destinations'); }} className={`${user?.role === 'admin' ? 'cursor-pointer' : 'cursor-default'} p-6 bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl flex flex-col justify-between hover-highlight`}>
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-display font-bold text-xs uppercase tracking-widest text-slate-400">Top Destinations</h3>
-            <span className="text-[10px] font-bold text-emerald-500 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Live Today</span>
+            <span className="text-[10px] font-bold text-emerald-500 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>All-Time Live</span>
           </div>
           <div className="space-y-4">
             {metrics?.topDestinations && metrics.topDestinations.length > 0 ? (

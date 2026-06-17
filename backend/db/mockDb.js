@@ -384,34 +384,18 @@ async function getAnalyticsData(filters = {}) {
   const offsetMinutes = parseInt(filters.tzOffset || 0, 10);
   const nowUtcMillis = Date.now();
   const localNowMillis = nowUtcMillis - (offsetMinutes * 60000);
-  const now = new Date(localNowMillis);
+  const totalGreetings = filteredGreetings.length;
   
-  const todayYear = now.getUTCFullYear();
-  const todayMonth = String(now.getUTCMonth() + 1).padStart(2, '0');
-  const todayDay = String(now.getUTCDate()).padStart(2, '0');
-  const todayDateStr = `${todayYear}-${todayMonth}-${todayDay}`;
+  // Calculate average rating for filtered greetings
+  const filteredGreetingIds = new Set(filteredGreetings.map(g => g.id));
+  const filteredFeedback = feedbackTable.filter(f => filteredGreetingIds.has(f.greeting_id));
 
-  const todayGreetings = filteredGreetings.filter(g => {
-    if (!g.created_at) return false;
-    const gDateObj = new Date(new Date(g.created_at).getTime() - (offsetMinutes * 60000));
-    const gYear = gDateObj.getUTCFullYear();
-    const gMonth = String(gDateObj.getUTCMonth() + 1).padStart(2, '0');
-    const gDay = String(gDateObj.getUTCDate()).padStart(2, '0');
-    return `${gYear}-${gMonth}-${gDay}` === todayDateStr;
-  });
-
-  const totalGreetings = todayGreetings.length;
-  
-  // Calculate average rating for today's greetings
-  const todayGreetingIds = new Set(todayGreetings.map(g => g.id));
-  const todayFeedback = feedbackTable.filter(f => todayGreetingIds.has(f.greeting_id));
-
-  const ratings = todayFeedback.map(f => f.rating);
+  const ratings = filteredFeedback.map(f => f.rating);
   const averageRating = ratings.length ? parseFloat((ratings.reduce((sum, r) => sum + r, 0) / ratings.length).toFixed(1)) : 0;
 
-  // Calculate top destinations (All destinations for today)
+  // Calculate top destinations (All destinations)
   const destCount = {};
-  todayGreetings.forEach(g => {
+  filteredGreetings.forEach(g => {
     destCount[g.destination] = (destCount[g.destination] || 0) + 1;
   });
   const topDestinations = Object.keys(destCount).map(name => ({
@@ -419,9 +403,9 @@ async function getAnalyticsData(filters = {}) {
     count: destCount[name]
   })).sort((a, b) => b.count - a.count);
 
-  // Group by travel category for today
+  // Group by travel category
   const categoryCount = {};
-  todayGreetings.forEach(g => {
+  filteredGreetings.forEach(g => {
     categoryCount[g.category] = (categoryCount[g.category] || 0) + 1;
   });
   const topCategories = Object.keys(categoryCount).map(name => ({
