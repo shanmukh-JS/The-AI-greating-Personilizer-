@@ -10,7 +10,7 @@ import {
   Sparkles, History, LayoutDashboard, FileCode, Star, 
   Settings, User, LogOut, Copy, Download, Share2, 
   Menu, X, Sun, Moon, AlertCircle, Plus, Edit, Trash2, CheckCircle, HelpCircle, Calendar,
-  Lock, Eye, EyeOff
+  Lock, Eye, EyeOff, RefreshCw
 } from 'lucide-react';
 
 // API Configuration & Base Instance with Automatic Interceptors
@@ -1082,6 +1082,10 @@ function Dashboard() {
           <p className="text-sm text-slate-550 dark:text-slate-400 mt-1">Real-time monitoring of greeting personalizations - Manivtha Tours & Travels</p>
         </div>
         <div className="flex items-center flex-wrap gap-3">
+          <button onClick={loadDashboardData} className="px-5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-full shadow-sm hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center gap-1.5">
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
           {/* Export Analytics button */}
           <button onClick={handleExportAnalytics} className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-full shadow-lg shadow-indigo-500/10 hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center gap-1.5">
             <Download className="h-3.5 w-3.5" />
