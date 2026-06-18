@@ -113,10 +113,10 @@ export function AuthProvider({ children }) {
       setToken(res.data.token);
       const loggedUser = res.data.user;
       if (username) {
-        loggedUser.profile_image = localStorage.getItem('profile_image_' + username) || loggedUser.profile_image || localStorage.getItem('profile_image');
-        loggedUser.location = localStorage.getItem('profile_location_' + username) || loggedUser.location || localStorage.getItem('profile_location');
-        loggedUser.phone = localStorage.getItem('profile_phone_' + username) || loggedUser.phone || localStorage.getItem('profile_phone');
-        loggedUser.email = localStorage.getItem('profile_email_' + username) || loggedUser.email || localStorage.getItem('profile_email');
+        loggedUser.profile_image = localStorage.getItem('profile_image_' + username) || loggedUser.profile_image;
+        loggedUser.location = localStorage.getItem('profile_location_' + username) || loggedUser.location;
+        loggedUser.phone = localStorage.getItem('profile_phone_' + username) || loggedUser.phone;
+        loggedUser.email = localStorage.getItem('profile_email_' + username) || loggedUser.email;
       }
       setUser(loggedUser);
       return { success: true };
@@ -146,10 +146,10 @@ export function AuthProvider({ children }) {
               'd2903b4b-48ab-46cb-8b8f-c20d8c4a0a0f',
           username,
           role: (isValidAdmin || isValidNiatAurora) ? 'admin' : 'staff',
-          email: localStorage.getItem('profile_email_' + username) || localStorage.getItem('profile_email') || (username === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${username}@manivthatravels.com`),
-          profile_image: localStorage.getItem('profile_image_' + username) || localStorage.getItem('profile_image'),
-          location: localStorage.getItem('profile_location_' + username) || localStorage.getItem('profile_location'),
-          phone: localStorage.getItem('profile_phone_' + username) || localStorage.getItem('profile_phone')
+          email: localStorage.getItem('profile_email_' + username) || (username === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${username}@manivthatravels.com`),
+          profile_image: localStorage.getItem('profile_image_' + username),
+          location: localStorage.getItem('profile_location_' + username),
+          phone: localStorage.getItem('profile_phone_' + username)
         };
         localStorage.setItem('token', dummyToken);
         setToken(dummyToken);
@@ -682,8 +682,8 @@ function LoginPage() {
           
           <div className="grid grid-cols-2 gap-3 mt-4">
             <button type="button" onClick={() => handleQuickDemo('agent', localStorage.getItem('custom_password_agent') || 'password123')} className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
-              {localStorage.getItem('profile_image_agent') || localStorage.getItem('profile_image') ? (
-                <img src={localStorage.getItem('profile_image_agent') || localStorage.getItem('profile_image')} alt="Agent" className="w-8 h-8 rounded-full mb-2 object-cover border border-[#759AF1]/50" />
+              {localStorage.getItem('profile_image_agent') ? (
+                <img src={localStorage.getItem('profile_image_agent')} alt="Agent" className="w-8 h-8 rounded-full mb-2 object-cover border border-[#759AF1]/50" />
               ) : (
                 <div className="w-8 h-8 rounded-full mb-2 bg-[#759AF1]/20 border border-[#759AF1]/50 flex items-center justify-center text-[#759AF1] font-bold">A</div>
               )}
