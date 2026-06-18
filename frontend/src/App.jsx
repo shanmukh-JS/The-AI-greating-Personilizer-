@@ -476,7 +476,7 @@ function Layout({ children }) {
               <Menu className="h-5 w-5" />
             </button>
             <span className="hidden sm:block text-sm font-semibold text-slate-500 dark:text-slate-400 select-none">
-              Welcome, <span className="text-slate-800 dark:text-slate-100">{user?.username}</span>
+              Welcome, <span className="text-slate-800 dark:text-slate-100">{localStorage.getItem('profile_fullName_' + user?.username) || user?.username}</span>
               <span className="ml-1.5 text-xs font-normal capitalize text-slate-400 dark:text-slate-500">
                 ({user?.id === 'a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' ? 'Master Admin' : user?.id === 'b3014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' ? 'Admin' : 'Agent'})
               </span>
@@ -702,6 +702,10 @@ function LoginPage() {
               const adminUser = localStorage.getItem('custom_username_admin') || 'admin';
               const niatUser = localStorage.getItem('custom_username_NIAT x AURORA') || 'NIAT x AURORA';
 
+              const agentName = localStorage.getItem('profile_fullName_' + agentUser) || agentUser;
+              const adminName = localStorage.getItem('profile_fullName_' + adminUser) || adminUser;
+              const niatName = localStorage.getItem('profile_fullName_' + niatUser) || niatUser;
+
               return (
                 <>
                   <button type="button" onClick={() => handleQuickDemo(agentUser, localStorage.getItem('custom_password_' + agentUser) || 'password123')} className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
@@ -711,7 +715,7 @@ function LoginPage() {
                       <div className="w-8 h-8 rounded-full mb-2 bg-[#759AF1]/20 border border-[#759AF1]/50 flex items-center justify-center text-[#759AF1] font-bold">A</div>
                     )}
                     <span className="text-[11px] font-extrabold text-[#759AF1] tracking-wider uppercase mb-1">Agent</span>
-                    <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors truncate w-full">{agentUser} / {localStorage.getItem('custom_password_' + agentUser) ? '******' : 'password123'}</span>
+                    <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors truncate w-full">{agentName} / {localStorage.getItem('custom_password_' + agentUser) ? '******' : 'password123'}</span>
                   </button>
                   <button type="button" onClick={() => handleQuickDemo(adminUser, localStorage.getItem('custom_password_' + adminUser) || 'password123')} className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
                     {localStorage.getItem('profile_image_' + adminUser) ? (
@@ -720,7 +724,7 @@ function LoginPage() {
                       <div className="w-8 h-8 rounded-full mb-2 bg-[#759AF1]/20 border border-[#759AF1]/50 flex items-center justify-center text-[#759AF1] font-bold">A</div>
                     )}
                     <span className="text-[11px] font-extrabold text-[#759AF1] tracking-wider uppercase mb-1">Admin</span>
-                    <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors truncate w-full">{adminUser} / {localStorage.getItem('custom_password_' + adminUser) ? '******' : 'password123'}</span>
+                    <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors truncate w-full">{adminName} / {localStorage.getItem('custom_password_' + adminUser) ? '******' : 'password123'}</span>
                   </button>
                   <button type="button" onClick={() => handleQuickDemo(niatUser, localStorage.getItem('custom_password_' + niatUser) || 'nxtwave@2026')} className="col-span-2 flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
                     {localStorage.getItem('profile_image_' + niatUser) ? (
@@ -729,7 +733,7 @@ function LoginPage() {
                       <div className="w-8 h-8 rounded-full mb-2 bg-[#14B8E6]/20 border border-[#14B8E6]/50 flex items-center justify-center text-[#14B8E6] font-bold">N</div>
                     )}
                     <span className="text-[11px] font-extrabold text-[#14B8E6] tracking-wider uppercase mb-1">Master Admin</span>
-                    <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors truncate w-full">{niatUser} / {localStorage.getItem('custom_password_' + niatUser) ? '******' : 'nxtwave@2026'}</span>
+                    <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors truncate w-full">{niatName} / {localStorage.getItem('custom_password_' + niatUser) ? '******' : 'nxtwave@2026'}</span>
                   </button>
                 </>
               );
@@ -3639,13 +3643,7 @@ function UserProfile() {
           localStorage.setItem('profile_timezone_' + uName, timezone);
           localStorage.setItem('profile_image_' + uName, profileImage);
         }
-        localStorage.setItem('profile_fullName', fullName);
-        localStorage.setItem('profile_email', email);
-        localStorage.setItem('profile_phone', phone);
-        localStorage.setItem('profile_location', location);
-        localStorage.setItem('profile_timezone', timezone);
-        localStorage.setItem('profile_image', profileImage);
-
+        // Global overrides removed to prevent cross-contamination
         setUser({
           ...user,
           email,
