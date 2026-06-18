@@ -51,8 +51,10 @@ export function AuthProvider({ children }) {
                 'd2903b4b-48ab-46cb-8b8f-c20d8c4a0a0f',
             username,
             role: (username === 'admin' || username === 'NIAT x AURORA') ? 'admin' : 'staff',
-            email: username === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${username}@manivthatravels.com`
-          };
+            email: username === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${username}@manivthatravels.com`,
+              profile_image: localStorage.getItem('profile_image'),
+              location: localStorage.getItem('profile_location')
+            };
           setUser(dummyUser);
           setLoading(false);
           return;
@@ -99,7 +101,7 @@ export function AuthProvider({ children }) {
         // API responded with an error (e.g. 401 Unauthorized due to bad password), do not fallback to simulation
         return { 
           success: false, 
-          error: err.response.data?.error || 'Invalid username or password.' 
+          error: err.response.data?.error || 'Wrong credentials detected.' 
         };
       }
       
@@ -107,9 +109,10 @@ export function AuthProvider({ children }) {
       // Simulation fallback for standalone runs when backend is offline
       const customAgentPassword = localStorage.getItem('custom_password_agent');
       const customAdminPassword = localStorage.getItem('custom_password_admin');
-      const isValidAgent = username === 'agent' && (password === (customAgentPassword || 'password123') || password === 'ManivthaTravels2026!');
-      const isValidAdmin = username === 'admin' && (password === (customAdminPassword || 'password123') || password === 'ManivthaTravels2026!');
-      const isValidNiatAurora = username === 'NIAT x AURORA' && password === 'nxtwave@2026';
+      const customNiatPassword = localStorage.getItem('custom_password_NIAT x AURORA');
+      const isValidAgent = username === 'agent' && password === (customAgentPassword || 'password123');
+      const isValidAdmin = username === 'admin' && password === (customAdminPassword || 'password123');
+      const isValidNiatAurora = username === 'NIAT x AURORA' && password === (customNiatPassword || 'nxtwave@2026');
 
       if (isValidAgent || isValidAdmin || isValidNiatAurora) {
         const dummyToken = `simulated_jwt_token_${username}`;
@@ -128,7 +131,7 @@ export function AuthProvider({ children }) {
       }
       return { 
         success: false, 
-        error: 'Invalid username or password.' 
+        error: 'Wrong credentials detected.' 
       };
     }
   };
@@ -441,9 +444,13 @@ function Layout({ children }) {
             >
               {theme === 'dark' ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-indigo-500" />}
             </button>
-            <div className="h-8 w-8 rounded-full bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs select-none ring-2 ring-indigo-500/20">
-              {user?.username?.substring(0, 2).toUpperCase()}
-            </div>
+            <div className="h-8 w-8 rounded-full bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs select-none ring-2 ring-indigo-500/20 overflow-hidden">
+                {user?.profile_image ? (
+                  <img src={user.profile_image} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  user?.username?.substring(0, 2).toUpperCase()
+                )}
+              </div>
           </div>
         </header>
 
@@ -553,8 +560,9 @@ function LoginPage() {
   };
 
   const handleQuickDemo = (u, p) => {
+    const custom = localStorage.getItem('custom_password_' + u);
     setUsername(u);
-    setPassword(p);
+    setPassword(custom || p);
   };
 
   return (
