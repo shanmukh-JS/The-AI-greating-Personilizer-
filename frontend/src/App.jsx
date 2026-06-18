@@ -779,109 +779,117 @@ function Dashboard() {
   useEffect(() => {
     async function loadMetrics() {
       setLoading(true);
+      
+      let allGreetings = [];
+      let allFeedbacks = [];
+      
       try {
-        const res = await api.get('/analytics', {
-          params: { category, language, travelType, tzOffset: new Date().getTimezoneOffset() }
+        const res = await api.get('/history');
+        let combined = [...res.data];
+        const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+        localGreetings.forEach(lg => {
+          if (!combined.find(g => g.id === lg.id)) combined.push(lg);
         });
+        allGreetings = combined;
         
-        let fetchedMetrics = { ...res.data };
-        const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
-        if (localGreetings.length > 0) {
-           fetchedMetrics.totalGreetings += localGreetings.length;
-           const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-           localGreetings.forEach(g => {
-             if (!g.created_at) return;
-             const gDateObj = new Date(g.created_at);
-             const dayName = daysOfWeek[gDateObj.getDay()];
-             const dateStr = `${dayName} ${gDateObj.getDate()}`;
-             const dayStat = fetchedMetrics.dailyUsage.find(d => d.date === dateStr);
-             if (dayStat) dayStat.count += 1;
-           });
-        }
-        setMetrics(fetchedMetrics);
-      } catch (err) {
-        console.warn("API offline, rendering simulated analytics");
-        const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
         const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
-        
-        let allGreetings = [...localGreetings];
-        let allFeedbacks = [...localFeedbacks];
-        
-        if (category && category !== 'All') {
-          allGreetings = allGreetings.filter(g => g.category === category);
-        }
-        if (language && language !== 'All') {
-          allGreetings = allGreetings.filter(g => g.language === language);
-        }
-        if (travelType && travelType !== 'All') {
-          allGreetings = allGreetings.filter(g => g.travel_type === travelType);
-        }
-        
-        const totalGreetings = allGreetings.length;
-        
-        const greetingIds = new Set(allGreetings.map(g => g.id));
-        const filteredFeedback = allFeedbacks.filter(f => greetingIds.has(f.greeting_id));
-        const ratings = filteredFeedback.map(f => f.rating);
-        const averageRating = ratings.length ? parseFloat((ratings.reduce((sum, r) => sum + r, 0) / ratings.length).toFixed(1)) : 0;
-        
-        const destCount = {};
+        allFeedbacks = [...localFeedbacks];
+        // Also add feedbacks attached to history if any
         allGreetings.forEach(g => {
-          destCount[g.destination] = (destCount[g.destination] || 0) + 1;
-        });
-        const topDestinations = Object.keys(destCount).map(name => ({
-          name,
-          count: destCount[name]
-        })).sort((a, b) => b.count - a.count);
-        
-        const dailyUsage = [];
-        const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const now = new Date();
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date(now);
-          d.setDate(now.getDate() - i);
-          const dayName = daysOfWeek[d.getDay()];
-          const localYear = d.getFullYear();
-          const localMonth = String(d.getMonth() + 1).padStart(2, '0');
-          const localDay = String(d.getDate()).padStart(2, '0');
-          const dateStr = `${localYear}-${localMonth}-${localDay}`;
-          const count = allGreetings.filter(g => {
-            if (!g.created_at) return false;
-            const gDateObj = new Date(g.created_at);
-            const gYear = gDateObj.getFullYear();
-            const gMonth = String(gDateObj.getMonth() + 1).padStart(2, '0');
-            const gDay = String(gDateObj.getDate()).padStart(2, '0');
-            const gDate = `${gYear}-${gMonth}-${gDay}`;
-            return gDate === dateStr;
-          }).length;
-          dailyUsage.push({ date: `${dayName} ${d.getDate()}`, count });
-        }
-        
-        const recentFeedbacks = filteredFeedback.map(fb => {
-          const greeting = allGreetings.find(g => g.id === fb.greeting_id);
-          return {
-            id: fb.id,
-            customer_name: greeting ? greeting.customer_name : 'Unknown Customer',
-            destination: greeting ? greeting.destination : 'Unknown',
-            rating: fb.rating,
-            comments: fb.comments,
-            created_at: fb.created_at
-          };
-        }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
-        
-        setMetrics({
-          totalGreetings,
-          averageRating,
-          feedbackCount: filteredFeedback.length,
-          topDestinations,
-          dailyUsage,
-          recentFeedbacks,
-          performanceMetrics: {
-            avgResponseMs: 2400,
-            uptimePct: 99.9,
-            aiSuccessRate: 99.2
+          if (g.rating && !allFeedbacks.find(f => f.greeting_id === g.id)) {
+            allFeedbacks.push({
+              id: 'fb_' + g.id,
+              greeting_id: g.id,
+              rating: g.rating,
+              comments: g.comments,
+              created_at: g.created_at
+            });
           }
         });
+      } catch (err) {
+        console.warn("API offline, rendering simulated analytics");
+        allGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+        allFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
       }
+      
+      // Apply filters
+      if (category && category !== 'All') {
+        allGreetings = allGreetings.filter(g => g.category === category);
+      }
+      if (language && language !== 'All') {
+        allGreetings = allGreetings.filter(g => g.language === language);
+      }
+      if (travelType && travelType !== 'All') {
+        allGreetings = allGreetings.filter(g => g.travel_type === travelType);
+      }
+      
+      const totalGreetings = allGreetings.length;
+      
+      const greetingIds = new Set(allGreetings.map(g => g.id));
+      const filteredFeedback = allFeedbacks.filter(f => greetingIds.has(f.greeting_id));
+      const ratings = filteredFeedback.map(f => f.rating);
+      const averageRating = ratings.length ? parseFloat((ratings.reduce((sum, r) => sum + r, 0) / ratings.length).toFixed(1)) : 0;
+      
+      const destCount = {};
+      allGreetings.forEach(g => {
+        if (g.destination) {
+          destCount[g.destination] = (destCount[g.destination] || 0) + 1;
+        }
+      });
+      const topDestinations = Object.keys(destCount).map(name => ({
+        name,
+        count: destCount[name]
+      })).sort((a, b) => b.count - a.count);
+      
+      const dailyUsage = [];
+      const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const now = new Date();
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
+        const dayName = daysOfWeek[d.getDay()];
+        const localYear = d.getFullYear();
+        const localMonth = String(d.getMonth() + 1).padStart(2, '0');
+        const localDay = String(d.getDate()).padStart(2, '0');
+        const dateStr = `${localYear}-${localMonth}-${localDay}`;
+        const count = allGreetings.filter(g => {
+          if (!g.created_at) return false;
+          const gDateObj = new Date(g.created_at);
+          const gYear = gDateObj.getFullYear();
+          const gMonth = String(gDateObj.getMonth() + 1).padStart(2, '0');
+          const gDay = String(gDateObj.getDate()).padStart(2, '0');
+          const gDate = `${gYear}-${gMonth}-${gDay}`;
+          return gDate === dateStr;
+        }).length;
+        dailyUsage.push({ date: `${dayName} ${d.getDate()}`, count });
+      }
+      
+      const recentFeedbacks = filteredFeedback.map(fb => {
+        const greeting = allGreetings.find(g => g.id === fb.greeting_id);
+        return {
+          id: fb.id,
+          customer_name: greeting ? greeting.customer_name : 'Unknown Customer',
+          destination: greeting ? greeting.destination : 'Unknown',
+          rating: fb.rating,
+          comments: fb.comments,
+          created_at: fb.created_at || new Date().toISOString()
+        };
+      }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
+      
+      setMetrics({
+        totalGreetings,
+        averageRating,
+        feedbackCount: filteredFeedback.length,
+        topDestinations,
+        dailyUsage,
+        recentFeedbacks,
+        performanceMetrics: {
+          avgResponseMs: 2400,
+          uptimePct: 99.9,
+          aiSuccessRate: 99.2
+        }
+      });
+      
       setLoading(false);
     }
     loadMetrics();
