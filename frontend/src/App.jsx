@@ -3539,18 +3539,19 @@ function UserProfile() {
     const handleUpdate = async (e) => {
     e.preventDefault();
     setIsSavingProfile(true);
+    const safetyTimer = setTimeout(() => setIsSavingProfile(false), 3000);
     
     // Artificial delay to show loading animation
     await new Promise(r => setTimeout(r, 200));
 
     if (!email.match(/@g\.?mail\.com$/i)) {
       setAlert("Email must be a @gmail.com address.");
-      setIsSavingProfile(false);
+      clearTimeout(safetyTimer); setIsSavingProfile(false);
       return;
     }
     if (!phone.match(/^\d{10}$/)) {
       setAlert("Phone number must be exactly 10 digits.");
-      setIsSavingProfile(false);
+      clearTimeout(safetyTimer); setIsSavingProfile(false);
       return;
     }
 
@@ -3574,7 +3575,7 @@ function UserProfile() {
       localStorage.setItem('custom_password_' + newU, localStorage.getItem('custom_password_' + oldU) || '');
       setAlert("Username changed successfully! Syncing credentials...");
       setTimeout(() => {
-        setIsSavingProfile(false);
+        clearTimeout(safetyTimer); setIsSavingProfile(false);
         localStorage.removeItem('token');
         window.location.href = '/';
       }, 500);
@@ -3584,6 +3585,7 @@ function UserProfile() {
     const uName = user?.username || '';
     try {
       const res = await api.put('/profile', { email, phone, location, profile_image: profileImage });
+      if (typeof res.data === 'string' && res.data.includes('<!DOCTYPE html>')) throw new Error('Vercel HTML Response');
       const updatedUser = res.data.user;
       
       if (uName) {
@@ -3612,34 +3614,39 @@ function UserProfile() {
 
       setAlert("Profile parameters updated!");
       setIsEditing(false);
-      setIsSavingProfile(false);
+      clearTimeout(safetyTimer); setIsSavingProfile(false);
     } catch (err) {
-      if (uName) {
-        localStorage.setItem('profile_fullName_' + uName, fullName);
-        localStorage.setItem('profile_email_' + uName, email);
-        localStorage.setItem('profile_phone_' + uName, phone);
-        localStorage.setItem('profile_location_' + uName, location);
-        localStorage.setItem('profile_timezone_' + uName, timezone);
-        localStorage.setItem('profile_image_' + uName, profileImage);
+      try {
+        if (uName) {
+          localStorage.setItem('profile_fullName_' + uName, fullName);
+          localStorage.setItem('profile_email_' + uName, email);
+          localStorage.setItem('profile_phone_' + uName, phone);
+          localStorage.setItem('profile_location_' + uName, location);
+          localStorage.setItem('profile_timezone_' + uName, timezone);
+          localStorage.setItem('profile_image_' + uName, profileImage);
+        }
+        localStorage.setItem('profile_fullName', fullName);
+        localStorage.setItem('profile_email', email);
+        localStorage.setItem('profile_phone', phone);
+        localStorage.setItem('profile_location', location);
+        localStorage.setItem('profile_timezone', timezone);
+        localStorage.setItem('profile_image', profileImage);
+
+        setUser({
+          ...user,
+          email,
+          phone,
+          location,
+          profile_image: profileImage
+        });
+
+        setAlert("Profile saved locally (Offline)!");
+      } catch (storageErr) {
+        console.error(storageErr);
+        setAlert("Profile saved partially. Storage limit exceeded for images.");
       }
-      localStorage.setItem('profile_fullName', fullName);
-      localStorage.setItem('profile_email', email);
-      localStorage.setItem('profile_phone', phone);
-      localStorage.setItem('profile_location', location);
-      localStorage.setItem('profile_timezone', timezone);
-      localStorage.setItem('profile_image', profileImage);
-
-      setUser({
-        ...user,
-        email,
-        phone,
-        location,
-        profile_image: profileImage
-      });
-
-      setAlert("Profile saved locally (Offline)!");
       setIsEditing(false);
-      setIsSavingProfile(false);
+      clearTimeout(safetyTimer); setIsSavingProfile(false);
     }
   };
 
@@ -3679,35 +3686,37 @@ function UserProfile() {
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     setIsSavingPassword(true);
+    const safetyTimer2 = setTimeout(() => setIsSavingPassword(false), 3000);
     
     // Artificial delay to show loading animation
     await new Promise(r => setTimeout(r, 200));
 
     if (newPassword !== confirmPassword) {
       setPasswordAlert("Passwords do not match!");
-      setIsSavingPassword(false);
+      clearTimeout(safetyTimer2); setIsSavingPassword(false);
       return;
     }
     if (newPassword.length < 8) {
       setPasswordAlert("Password must be at least 8 characters long.");
-      setIsSavingPassword(false);
+      clearTimeout(safetyTimer2); setIsSavingPassword(false);
       return;
     }
     try {
-      await api.put('/profile/password', { currentPassword, newPassword });
+      const res = await api.put('/profile/password', { currentPassword, newPassword });
+      if (typeof res.data === 'string' && res.data.includes('<!DOCTYPE html>')) throw new Error('Vercel HTML Response');
       setPasswordAlert("Password successfully changed!");
       if (user && user.username) { localStorage.setItem('custom_password_' + user.username, newPassword); }
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setTimeout(() => setPasswordAlert(''), 3000);
-      setIsSavingPassword(false);
+      clearTimeout(safetyTimer2); setIsSavingPassword(false);
     } catch (err) {
       if (user && user.username) {
         const currentCustom = localStorage.getItem('custom_password_' + user.username) || 'password123';
         if (currentPassword !== currentCustom && currentPassword !== 'ManivthaTravels2026!') {
           setPasswordAlert("Incorrect current password.");
-          setIsSavingPassword(false);
+          clearTimeout(safetyTimer2); setIsSavingPassword(false);
           return;
         }
         localStorage.setItem('custom_password_' + user.username, newPassword);
@@ -3716,10 +3725,10 @@ function UserProfile() {
         setNewPassword('');
         setConfirmPassword('');
         setTimeout(() => setPasswordAlert(''), 3000);
-        setIsSavingPassword(false);
+        clearTimeout(safetyTimer2); setIsSavingPassword(false);
       } else {
         setPasswordAlert(err.response?.data?.error || "Failed to change password.");
-        setIsSavingPassword(false);
+        clearTimeout(safetyTimer2); setIsSavingPassword(false);
       }
     }
   };
