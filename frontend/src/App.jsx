@@ -752,7 +752,22 @@ function Dashboard() {
         const res = await api.get('/analytics', {
           params: { category, language, travelType, tzOffset: new Date().getTimezoneOffset() }
         });
-        setMetrics(res.data);
+        
+        let fetchedMetrics = { ...res.data };
+        const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+        if (localGreetings.length > 0) {
+           fetchedMetrics.totalGreetings += localGreetings.length;
+           const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+           localGreetings.forEach(g => {
+             if (!g.created_at) return;
+             const gDateObj = new Date(g.created_at);
+             const dayName = daysOfWeek[gDateObj.getDay()];
+             const dateStr = `${dayName} ${gDateObj.getDate()}`;
+             const dayStat = fetchedMetrics.dailyUsage.find(d => d.date === dateStr);
+             if (dayStat) dayStat.count += 1;
+           });
+        }
+        setMetrics(fetchedMetrics);
       } catch (err) {
         console.warn("API offline, rendering simulated analytics");
         const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
@@ -1813,7 +1828,13 @@ function GreetingGenerator() {
     setHistoryLoading(true);
     try {
       const res = await api.get('/history');
-      setHistoryList(res.data);
+      let combined = [...res.data];
+      const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+      localGreetings.forEach(lg => {
+        if (!combined.find(g => g.id === lg.id)) combined.push(lg);
+      });
+      combined.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      setHistoryList(combined);
     } catch (e) {
       console.warn("API offline, falling back to local storage logs");
       const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
@@ -2813,7 +2834,28 @@ function HistoryLog() {
   async function loadHistory() {
     try {
       const res = await api.get('/history', { params: { search } });
-      setHistory(res.data);
+      let combined = [...res.data];
+      const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+      const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+      localGreetings.forEach(lg => {
+        if (!combined.find(g => g.id === lg.id)) {
+          const fb = localFeedbacks.find(f => f.greeting_id === lg.id);
+          combined.push({
+            ...lg,
+            rating: fb ? fb.rating : (lg.rating || null),
+            comments: fb ? fb.comments : (lg.comments || null)
+          });
+        }
+      });
+      if (search) {
+        const q = search.toLowerCase();
+        combined = combined.filter(g => 
+          (g.customer_name && g.customer_name.toLowerCase().includes(q)) || 
+          (g.destination && g.destination.toLowerCase().includes(q))
+        );
+      }
+      combined.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      setHistory(combined);
     } catch (e) {
       console.warn("API Offline, displaying simulated history records");
       const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
