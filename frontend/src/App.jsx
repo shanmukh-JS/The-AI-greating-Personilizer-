@@ -1297,14 +1297,15 @@ function Dashboard() {
           </div>
           
           {(() => {
+            const isFiltered = category !== 'All' || language !== 'All' || travelType !== 'All';
             const rawUsage = metrics?.dailyUsage || [];
             const hasRealData = rawUsage.some(d => d.count > 0);
-            const displayUsage = (user?.role === 'admin') 
+            const displayUsage = (user?.role === 'admin' || isFiltered || hasRealData) 
               ? rawUsage 
-              : (hasRealData ? rawUsage : [
+              : [
                   { date: 'Sun', count: 3 }, { date: 'Mon', count: 7 }, { date: 'Tue', count: 12 },
                   { date: 'Wed', count: 8 }, { date: 'Thu', count: 5 }, { date: 'Fri', count: 9 }, { date: 'Sat', count: 4 }
-                ]);
+                ];
             const maxVal = Math.max(...displayUsage.map(d => d.count)) || 1;
             const _now = new Date();
             const todayName = `${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][_now.getDay()]} ${_now.getDate()}`;
@@ -1337,7 +1338,7 @@ function Dashboard() {
                     </div>
                   );
                 })}
-                {!hasRealData && !(user?.role === 'admin') && (
+                {!hasRealData && !(user?.role === 'admin') && !isFiltered && (
                   <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[9px] font-bold uppercase">Demo Data</div>
                 )}
               </div>
@@ -1389,7 +1390,9 @@ function Dashboard() {
         <div onClick={() => { if (user?.role === 'admin') setExpandedCard('feedback'); }} className={`${user?.role === 'admin' ? 'cursor-pointer' : 'cursor-default'} p-6 bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl lg:col-span-2 space-y-5 hover-highlight`}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <h3 className="font-display font-bold text-xs uppercase tracking-widest text-slate-400">Recent AI Feedback</h3>
+              <h3 className="font-display font-bold text-xs uppercase tracking-widest text-slate-400">
+                {(category !== 'All' || language !== 'All' || travelType !== 'All') ? 'Filtered AI Feedback' : 'Recent AI Feedback'}
+              </h3>
               <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/25 text-[10px] font-bold">{(metrics?.recentFeedbacks?.length || 0) > 0 ? `${metrics.recentFeedbacks.length} new` : '—'}</span>
             </div>
             <span className="flex items-center gap-1.5">
@@ -1399,14 +1402,15 @@ function Dashboard() {
           </div>
           
           {(() => {
+            const isFiltered = category !== 'All' || language !== 'All' || travelType !== 'All';
             const hasRealFeedbacks = metrics?.recentFeedbacks && metrics.recentFeedbacks.length > 0;
-            const displayFeedbacks = (user?.role === 'admin')
+            const displayFeedbacks = (user?.role === 'admin' || isFiltered || hasRealFeedbacks)
               ? (metrics?.recentFeedbacks || [])
-              : (hasRealFeedbacks ? metrics.recentFeedbacks : [
+              : [
                   { id: 'demo1', customer_name: 'Ravi Kumar', destination: 'Tirupati', rating: 5, comments: 'Excellent personalization! The Telugu greeting was perfect and my client loved it.', created_at: new Date(Date.now() - 86400000).toISOString() },
                   { id: 'demo2', customer_name: 'Priya Sharma', destination: 'Goa', rating: 4, comments: 'Great honeymoon greeting template. Very professional tone.', created_at: new Date(Date.now() - 172800000).toISOString() },
                   { id: 'demo3', customer_name: 'Anand Reddy', destination: 'Kerala', rating: 5, comments: 'The multilingual support is outstanding. Sent in Malayalam and client was thrilled!', created_at: new Date(Date.now() - 259200000).toISOString() },
-                ]);
+                ];
             const avatarColors = ['bg-indigo-600 dark:bg-indigo-950', 'bg-emerald-600 dark:bg-emerald-950', 'bg-amber-600 dark:bg-amber-950', 'bg-pink-600 dark:bg-pink-950', 'bg-sky-600 dark:bg-sky-950'];
             return (
               <div className="space-y-4 max-h-[360px] overflow-y-auto pr-2 relative">
@@ -1451,7 +1455,7 @@ function Dashboard() {
                     </div>
                   );
                 })}
-                {!hasRealFeedbacks && !(user?.role === 'admin') && (
+                {!hasRealFeedbacks && !(user?.role === 'admin') && !isFiltered && (
                   <div className="absolute top-0 right-0 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[9px] font-bold uppercase">Demo Data</div>
                 )}
               </div>
@@ -1605,7 +1609,9 @@ function Dashboard() {
 
             {expandedCard === 'feedback' && (
               <div>
-                <h2 className="text-lg font-display font-extrabold text-slate-900 dark:text-white mb-1">Recent AI Feedback</h2>
+                <h2 className="text-lg font-display font-extrabold text-slate-900 dark:text-white mb-1">
+                  {(category !== 'All' || language !== 'All' || travelType !== 'All') ? 'Filtered AI Feedback' : 'Recent AI Feedback'}
+                </h2>
                 <p className="text-xs text-slate-500 mb-6">Latest customer testimonials and rating details.</p>
                 <table className="w-full text-left border-collapse">
                   <thead><tr className="border-b border-slate-200 dark:border-slate-800">
