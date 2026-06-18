@@ -1665,10 +1665,10 @@ function Dashboard() {
 // -------------------------------------------------------------
 function GreetingGenerator() {
   const { user } = useContext(AuthContext);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 700);
+    const t = setTimeout(() => setInitialLoading(false), 700);
     return () => clearTimeout(t);
   }, []);
 
@@ -2246,7 +2246,7 @@ function GreetingGenerator() {
 
   const [showOutputDrawer, setShowOutputDrawer] = useState(false);
 
-  if (loading) return <InnerLoader text="Initializing AI Generator..." />;
+  if (initialLoading) return <InnerLoader text="Initializing AI Generator..." />;
 
   return (
     <>
