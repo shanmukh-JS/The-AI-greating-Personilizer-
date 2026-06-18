@@ -3596,12 +3596,18 @@ function UserProfile() {
       localStorage.removeItem('profile_email_' + oldU);
       localStorage.removeItem('custom_password_' + oldU);
       
-      setAlert("Username changed successfully! Syncing credentials...");
-      setTimeout(() => {
-        clearTimeout(safetyTimer); setIsSavingProfile(false);
-        localStorage.removeItem('token');
-        window.location.href = '/';
-      }, 500);
+      setUser({
+        ...user,
+        username: newU,
+        email,
+        phone,
+        location,
+        profile_image: profileImage
+      });
+
+      setAlert("Username updated seamlessly!");
+      setIsEditing(false);
+      clearTimeout(safetyTimer); setIsSavingProfile(false);
       return;
     }
     
