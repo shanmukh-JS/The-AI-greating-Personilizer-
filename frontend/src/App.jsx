@@ -3582,8 +3582,8 @@ function UserProfile() {
           localStorage.setItem('custom_username_' + baseRole, newU);
       }
       
-      localStorage.setItem('profile_fullName_' + newU, localStorage.getItem('profile_fullName_' + oldU) || '');
-      localStorage.setItem('profile_image_' + newU, localStorage.getItem('profile_image_' + oldU) || '');
+      localStorage.setItem('profile_fullName_' + newU, fullName);
+      localStorage.setItem('profile_image_' + newU, profileImage);
       localStorage.setItem('profile_location_' + newU, location);
       localStorage.setItem('profile_phone_' + newU, phone);
       localStorage.setItem('profile_email_' + newU, email);
