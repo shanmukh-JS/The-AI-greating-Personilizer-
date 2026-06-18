@@ -3596,24 +3596,12 @@ function UserProfile() {
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Phone Number</label>
                   <input type="tel" disabled={!isEditing} value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" />
                 </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Date of Birth</label>
-                  <input type="date" disabled={!isEditing} value={dob} onChange={e => setDob(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" />
-                </div>
+                
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Location</label>
                   <input type="text" disabled={!isEditing} value={location} onChange={e => setLocation(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" placeholder="e.g. New York, USA" />
                 </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Preferred Language</label>
-                  <select disabled={!isEditing} value={language} onChange={e => setLanguage(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors">
-                    <option value="English">English</option>
-                    <option value="Spanish">Spanish</option>
-                    <option value="French">French</option>
-                    <option value="Telugu">Telugu</option>
-                    <option value="Hindi">Hindi</option>
-                  </select>
-                </div>
+                
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Time Zone</label>
                   <select disabled={!isEditing} value={timezone} onChange={e => setTimezone(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors">
