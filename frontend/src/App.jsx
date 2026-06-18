@@ -1721,16 +1721,16 @@ function GreetingGenerator() {
     return () => clearTimeout(t);
   }, []);
 
-  const [name, setName] = useState(() => localStorage.getItem('gen_name') || '');
+  const [name, setName] = useState(() => (localStorage.getItem('settings_autoSave') !== 'false') ? (localStorage.getItem('gen_name') || '') : '');
     
-  const [destination, setDestination] = useState(() => localStorage.getItem('gen_destination') || '');
-  const [bookingHistory, setBookingHistory] = useState(() => localStorage.getItem('gen_bookingHistory') || '1st Trip');
-  const [travelType, setTravelType] = useState(() => localStorage.getItem('gen_travelType') || 'Family Trip');
-  const [preferredLanguage, setPreferredLanguage] = useState(() => localStorage.getItem('gen_preferredLanguage') || 'English');
-  const [customerCategory, setCustomerCategory] = useState(() => localStorage.getItem('gen_customerCategory') || 'Standard');
-  const [specialNotes, setSpecialNotes] = useState(() => localStorage.getItem('gen_specialNotes') || '');
-  const [travelDate, setTravelDate] = useState(() => localStorage.getItem('gen_travelDate') || '');
-  const [whatsappNumber, setWhatsappNumber] = useState(() => localStorage.getItem('gen_whatsappNumber') || '');
+  const [destination, setDestination] = useState(() => (localStorage.getItem('settings_autoSave') !== 'false') ? (localStorage.getItem('gen_destination') || '') : '');
+  const [bookingHistory, setBookingHistory] = useState(() => (localStorage.getItem('settings_autoSave') !== 'false') ? (localStorage.getItem('gen_bookingHistory') || '1st Trip') : '1st Trip');
+  const [travelType, setTravelType] = useState(() => (localStorage.getItem('settings_autoSave') !== 'false') ? (localStorage.getItem('gen_travelType') || 'Family Trip') : 'Family Trip');
+  const [preferredLanguage, setPreferredLanguage] = useState(() => (localStorage.getItem('settings_autoSave') !== 'false') ? (localStorage.getItem('gen_preferredLanguage') || 'English') : 'English');
+  const [customerCategory, setCustomerCategory] = useState(() => (localStorage.getItem('settings_autoSave') !== 'false') ? (localStorage.getItem('gen_customerCategory') || 'Standard') : 'Standard');
+  const [specialNotes, setSpecialNotes] = useState(() => (localStorage.getItem('settings_autoSave') !== 'false') ? (localStorage.getItem('gen_specialNotes') || '') : '');
+  const [travelDate, setTravelDate] = useState(() => (localStorage.getItem('settings_autoSave') !== 'false') ? (localStorage.getItem('gen_travelDate') || '') : '');
+  const [whatsappNumber, setWhatsappNumber] = useState(() => (localStorage.getItem('settings_autoSave') !== 'false') ? (localStorage.getItem('gen_whatsappNumber') || '') : '');
 
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('');
@@ -1788,31 +1788,31 @@ function GreetingGenerator() {
   });
 
   useEffect(() => {
-    localStorage.setItem('gen_name', name);
+    if (localStorage.getItem('settings_autoSave') !== 'false') localStorage.setItem('gen_name', name);
   }, [name]);
   useEffect(() => {
-    localStorage.setItem('gen_destination', destination);
+    if (localStorage.getItem('settings_autoSave') !== 'false') localStorage.setItem('gen_destination', destination);
   }, [destination]);
   useEffect(() => {
-    localStorage.setItem('gen_bookingHistory', bookingHistory);
+    if (localStorage.getItem('settings_autoSave') !== 'false') localStorage.setItem('gen_bookingHistory', bookingHistory);
   }, [bookingHistory]);
   useEffect(() => {
-    localStorage.setItem('gen_travelType', travelType);
+    if (localStorage.getItem('settings_autoSave') !== 'false') localStorage.setItem('gen_travelType', travelType);
   }, [travelType]);
   useEffect(() => {
-    localStorage.setItem('gen_preferredLanguage', preferredLanguage);
+    if (localStorage.getItem('settings_autoSave') !== 'false') localStorage.setItem('gen_preferredLanguage', preferredLanguage);
   }, [preferredLanguage]);
   useEffect(() => {
-    localStorage.setItem('gen_customerCategory', customerCategory);
+    if (localStorage.getItem('settings_autoSave') !== 'false') localStorage.setItem('gen_customerCategory', customerCategory);
   }, [customerCategory]);
   useEffect(() => {
-    localStorage.setItem('gen_specialNotes', specialNotes);
+    if (localStorage.getItem('settings_autoSave') !== 'false') localStorage.setItem('gen_specialNotes', specialNotes);
   }, [specialNotes]);
   useEffect(() => {
-    localStorage.setItem('gen_travelDate', travelDate);
+    if (localStorage.getItem('settings_autoSave') !== 'false') localStorage.setItem('gen_travelDate', travelDate);
   }, [travelDate]);
   useEffect(() => {
-    localStorage.setItem('gen_whatsappNumber', whatsappNumber);
+    if (localStorage.getItem('settings_autoSave') !== 'false') localStorage.setItem('gen_whatsappNumber', whatsappNumber);
   }, [whatsappNumber]);
 
   useEffect(() => {
@@ -2169,8 +2169,11 @@ function GreetingGenerator() {
       }
       
       setResultGreeting(generatedGreeting);
-      loadGreetingsHistory();
-    } catch (err) {
+        loadGreetingsHistory();
+        if (localStorage.getItem('settings_notifyGenerate') !== 'false') {
+          setAlertMessage('AI Greeting generated successfully!');
+        }
+      } catch (err) {
       console.warn("API Error, triggering simulated local output fallback");
       
       const formattedDate = travelDate ? new Date(travelDate).toLocaleDateString('en-US', {
@@ -2235,9 +2238,12 @@ function GreetingGenerator() {
       localStorage.setItem('local_greetings', JSON.stringify(localGreetings));
 
       setResultGreeting(generatedGreeting);
-      loadGreetingsHistory();
-    }
-    setLoading(false);
+        loadGreetingsHistory();
+        if (localStorage.getItem('settings_notifyGenerate') !== 'false') {
+          setAlertMessage('AI Greeting generated successfully!');
+        }
+      }
+      setLoading(false);
   };
 
   const handleCopy = () => {
@@ -2336,10 +2342,16 @@ function GreetingGenerator() {
       });
       setFeedbackSaved(true);
       saveFeedbackLocally(resultGreeting.id, rating, feedbackComments);
+      if (localStorage.getItem('settings_notifyFeedback') !== 'false') {
+        setAlertMessage('Feedback submitted successfully!');
+      }
     } catch (e) {
       console.warn("Feedback save error, displaying confirmation locally");
       saveFeedbackLocally(resultGreeting.id, rating, feedbackComments);
       setFeedbackSaved(true);
+      if (localStorage.getItem('settings_notifyFeedback') !== 'false') {
+        setAlertMessage('Feedback saved locally!');
+      }
     }
   };
 
@@ -2379,6 +2391,7 @@ function GreetingGenerator() {
             <textarea value={resultGreeting.generated_text} onChange={e => setResultGreeting({ ...resultGreeting, generated_text: e.target.value })} rows="10" className="w-full p-4 bg-slate-50 dark:bg-slate-950 font-mono text-sm border border-slate-200 dark:border-slate-800 rounded-2xl outline-none focus:border-indigo-500 leading-relaxed text-slate-700 dark:text-slate-300 resize-none" />
 
             {/* WhatsApp Send Button */}
+            {localStorage.getItem('settings_showWhatsapp') !== 'false' && (
             <button
               type="button"
               onClick={handleWhatsAppShare}
@@ -2396,6 +2409,7 @@ function GreetingGenerator() {
                 : 'Enter a WhatsApp number above to send'
               }
             </button>
+            )}
             <div className="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-3">
               <h4 className="font-display font-semibold text-sm text-slate-500 uppercase tracking-wider">Rate Quality</h4>
               {feedbackSaved ? (
@@ -2758,10 +2772,12 @@ function GreetingGenerator() {
                 <button onClick={handleDownload} title="Download File" className="p-2.5 bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-indigo-500 rounded-xl transition-colors">
                   <Download className="h-4 w-4" />
                 </button>
+                {localStorage.getItem('settings_showWhatsapp') !== 'false' && (
                 <button onClick={handleWhatsAppShare} title="Share WhatsApp" className="p-2.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-xl transition-colors flex items-center gap-2 font-semibold text-xs px-3">
                   <Share2 className="h-4 w-4" />
                   <span>Send</span>
                 </button>
+                )}
               </div>
             </div>
 
