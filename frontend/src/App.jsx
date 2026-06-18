@@ -790,11 +790,15 @@ function Dashboard() {
         localGreetings.forEach(lg => {
           if (!combined.find(g => g.id === lg.id)) combined.push(lg);
         });
-        allGreetings = combined;
         
         const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+        allGreetings = combined.map(g => {
+          const fb = localFeedbacks.find(f => f.greeting_id === g.id);
+          if (fb) return { ...g, rating: fb.rating, comments: fb.comments };
+          return g;
+        });
+        
         allFeedbacks = [...localFeedbacks];
-        // Also add feedbacks attached to history if any
         allGreetings.forEach(g => {
           if (g.rating && !allFeedbacks.find(f => f.greeting_id === g.id)) {
             allFeedbacks.push({
@@ -808,8 +812,27 @@ function Dashboard() {
         });
       } catch (err) {
         console.warn("API offline, rendering simulated analytics");
-        allGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
-        allFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+        const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+        const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+        
+        allGreetings = localGreetings.map(g => {
+          const fb = localFeedbacks.find(f => f.greeting_id === g.id);
+          if (fb) return { ...g, rating: fb.rating, comments: fb.comments };
+          return g;
+        });
+        
+        allFeedbacks = [...localFeedbacks];
+        allGreetings.forEach(g => {
+          if (g.rating && !allFeedbacks.find(f => f.greeting_id === g.id)) {
+            allFeedbacks.push({
+              id: 'fb_' + g.id,
+              greeting_id: g.id,
+              rating: g.rating,
+              comments: g.comments,
+              created_at: g.created_at
+            });
+          }
+        });
       }
       
       // Apply filters
@@ -1882,16 +1905,33 @@ function GreetingGenerator() {
       const res = await api.get('/history');
       let combined = [...res.data];
       const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+      const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+      
       localGreetings.forEach(lg => {
         if (!combined.find(g => g.id === lg.id)) combined.push(lg);
       });
+      
+      combined = combined.map(g => {
+        const fb = localFeedbacks.find(f => f.greeting_id === g.id);
+        if (fb) return { ...g, rating: fb.rating, comments: fb.comments };
+        return g;
+      });
+
       combined.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       setHistoryList(combined);
     } catch (e) {
       console.warn("API offline, falling back to local storage logs");
       const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
-      localGreetings.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      setHistoryList(localGreetings);
+      const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+      
+      let combined = localGreetings.map(g => {
+        const fb = localFeedbacks.find(f => f.greeting_id === g.id);
+        if (fb) return { ...g, rating: fb.rating, comments: fb.comments };
+        return g;
+      });
+
+      combined.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      setHistoryList(combined);
     }
     setHistoryLoading(false);
   };
@@ -2901,16 +2941,17 @@ function HistoryLog() {
       let combined = [...res.data];
       const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
       const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+      
       localGreetings.forEach(lg => {
-        if (!combined.find(g => g.id === lg.id)) {
-          const fb = localFeedbacks.find(f => f.greeting_id === lg.id);
-          combined.push({
-            ...lg,
-            rating: fb ? fb.rating : (lg.rating || null),
-            comments: fb ? fb.comments : (lg.comments || null)
-          });
-        }
+        if (!combined.find(g => g.id === lg.id)) combined.push(lg);
       });
+      
+      combined = combined.map(g => {
+        const fb = localFeedbacks.find(f => f.greeting_id === g.id);
+        if (fb) return { ...g, rating: fb.rating, comments: fb.comments };
+        return g;
+      });
+
       if (search) {
         const q = search.toLowerCase();
         combined = combined.filter(g => 
@@ -2925,21 +2966,17 @@ function HistoryLog() {
       const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
       const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
       
-      let combined = [...localGreetings];
-      combined = combined.map(g => {
+      let combined = localGreetings.map(g => {
         const fb = localFeedbacks.find(f => f.greeting_id === g.id);
-        return {
-          ...g,
-          rating: fb ? fb.rating : (g.rating || null),
-          comments: fb ? fb.comments : (g.comments || null)
-        };
+        if (fb) return { ...g, rating: fb.rating, comments: fb.comments };
+        return g;
       });
 
       if (search) {
         const q = search.toLowerCase();
         combined = combined.filter(g => 
-          g.customer_name.toLowerCase().includes(q) || 
-          g.destination.toLowerCase().includes(q)
+          (g.customer_name && g.customer_name.toLowerCase().includes(q)) || 
+          (g.destination && g.destination.toLowerCase().includes(q))
         );
       }
 
