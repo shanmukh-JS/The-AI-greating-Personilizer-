@@ -42,19 +42,23 @@ export function AuthProvider({ children }) {
       if (token) {
         // If simulated token, parse user role locally to skip server profile validation
         if (token.startsWith('simulated_jwt_token')) {
-          const username = token.startsWith('simulated_jwt_token_')
+          const baseRole = token.startsWith('simulated_jwt_token_')
             ? token.replace('simulated_jwt_token_', '')
             : 'agent'; // fallback if legacy exact string matches
+            
+          const customName = localStorage.getItem('custom_username_' + baseRole);
+          const finalUsername = customName || baseRole;
+          
           const dummyUser = {
-            id: username === 'admin' ? 'b3014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
-                username === 'NIAT x AURORA' ? 'a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
+            id: baseRole === 'admin' ? 'b3014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
+                baseRole === 'NIAT x AURORA' ? 'a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
                 'd2903b4b-48ab-46cb-8b8f-c20d8c4a0a0f',
-            username,
-            role: (username === 'admin' || username === 'NIAT x AURORA') ? 'admin' : 'staff',
-            email: localStorage.getItem('profile_email_' + username)  || (username === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${username}@manivthatravels.com`),
-            profile_image: localStorage.getItem('profile_image_' + username) ,
-            location: localStorage.getItem('profile_location_' + username) ,
-            phone: localStorage.getItem('profile_phone_' + username) 
+            username: finalUsername,
+            role: (baseRole === 'admin' || baseRole === 'NIAT x AURORA') ? 'admin' : 'staff',
+            email: localStorage.getItem('profile_email_' + finalUsername)  || (baseRole === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${baseRole}@manivthatravels.com`),
+            profile_image: localStorage.getItem('profile_image_' + finalUsername) ,
+            location: localStorage.getItem('profile_location_' + finalUsername) ,
+            phone: localStorage.getItem('profile_phone_' + finalUsername) 
           };
           setUser(dummyUser);
           setLoading(false);
