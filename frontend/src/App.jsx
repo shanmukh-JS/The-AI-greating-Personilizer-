@@ -1826,11 +1826,11 @@ function GreetingGenerator() {
 
   // Custom presets state (admin-managed, fetched from database)
   const [presets, setPresets] = useState([]);
-  const defaultPresetsList = [
+    const defaultPresetsList = [
     {
       id: "p1",
       label: "Tirupati Pilgrimage",
-      emoji: "☸️",
+      emoji: "🙏",
       destination: "Tirupati",
       travelType: "Spiritual Tour",
       bookingHistory: "3 Previous Trips",
@@ -1852,7 +1852,7 @@ function GreetingGenerator() {
     {
       id: "p3",
       label: "Mumbai Corporate",
-      emoji: "💼",
+      emoji: "🏙️",
       destination: "Mumbai",
       travelType: "Corporate Travel",
       bookingHistory: "5 Previous Trips",
@@ -1874,7 +1874,7 @@ function GreetingGenerator() {
     {
       id: "p5",
       label: "Ooty Family",
-      emoji: "👪",
+      emoji: "🏞️",
       destination: "Ooty",
       travelType: "Family Trip",
       bookingHistory: "2 Previous Trips",
@@ -1892,6 +1892,28 @@ function GreetingGenerator() {
       category: "VIP",
       language: "Hindi",
       notes: "Book local guide for historical forts and royal dinner reservations."
+    },
+    {
+      id: "p7",
+      label: "Kerala Backwaters",
+      emoji: "🛶",
+      destination: "Alleppey",
+      travelType: "Honeymoon",
+      bookingHistory: "1st Trip",
+      category: "VIP",
+      language: "English",
+      notes: "Include premium houseboat stay and authentic Kerala cuisine."
+    },
+    {
+      id: "p8",
+      label: "Dubai Shopping",
+      emoji: "🛍️",
+      destination: "Dubai",
+      travelType: "Family Trip",
+      bookingHistory: "1st Trip",
+      category: "Premium",
+      language: "English",
+      notes: "Arrange transport for Dubai Mall, Burj Khalifa tickets, and desert safari."
     }
   ];
   const [presetsLoading, setPresetsLoading] = useState(true);
@@ -2528,11 +2550,11 @@ function GreetingGenerator() {
                 type="tel" 
                 value={whatsappNumber} 
                 onChange={e => {
-                  const val = e.target.value.replace(/[^\d+()\-\s]/g, '');
+                  const val = e.target.value.replace(/[^\d]/g, '');
                   setWhatsappNumber(val);
                 }} 
-                placeholder="e.g. +91 98765 43210" 
-                maxLength="16"
+                placeholder="e.g. 9876543210" 
+                maxLength="10"
                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" 
               />
             </div>
