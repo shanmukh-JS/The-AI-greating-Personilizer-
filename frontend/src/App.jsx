@@ -174,17 +174,33 @@ function LoadingSpinner() {
   );
 }
 
-function InnerLoader({ text = "Loading data..." }) {
+function InnerLoader({ text = "Loading module..." }) {
   return (
-    <div className="w-full py-24 flex flex-col items-center justify-center animate-fade-in">
-      <div className="relative">
-        <div className="h-16 w-16 rounded-full border-4 border-indigo-500/20"></div>
-        <div className="h-16 w-16 rounded-full border-4 border-transparent border-t-indigo-600 dark:border-t-indigo-400 animate-spin absolute top-0 left-0"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <Sparkles className="h-5 w-5 text-indigo-500 dark:text-indigo-400 animate-pulse" />
+    <div className="w-full min-h-[70vh] flex flex-col items-center justify-center animate-fade-in">
+      <div className="relative flex items-center justify-center mb-8">
+        {/* Outer glowing ring */}
+        <div className="absolute inset-0 h-28 w-28 -m-2 rounded-full border border-indigo-500/20 animate-[spin_4s_linear_infinite] shadow-[0_0_20px_rgba(99,102,241,0.15)]"></div>
+        {/* Middle fast ring */}
+        <div className="absolute inset-2 h-20 w-20 rounded-full border-t-2 border-r-2 border-indigo-400/80 animate-[spin_1.5s_linear_infinite_reverse]"></div>
+        {/* Inner solid ring */}
+        <div className="h-24 w-24 rounded-full border-4 border-slate-200 dark:border-slate-800/50"></div>
+        <div className="h-24 w-24 rounded-full border-4 border-transparent border-t-indigo-600 dark:border-t-indigo-500 animate-[spin_1s_ease-in-out_infinite] absolute"></div>
+        
+        {/* Center Logo/Icon */}
+        <div className="absolute flex items-center justify-center">
+          <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 animate-pulse">
+            <span className="text-white font-display font-extrabold text-xl">M</span>
+          </div>
         </div>
       </div>
-      <p className="mt-6 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{text}</p>
+      <div className="flex flex-col items-center gap-3">
+        <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] animate-pulse">{text}</p>
+        <div className="flex gap-1.5">
+          <div className="h-1.5 w-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+          <div className="h-1.5 w-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+          <div className="h-1.5 w-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -3301,6 +3317,12 @@ function UserProfile() {
   const { user, setUser } = useContext(AuthContext);
   const [email, setEmail] = useState(user?.email || '');
   const [alert, setAlert] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 700);
+    return () => clearTimeout(t);
+  }, []);
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -3312,6 +3334,8 @@ function UserProfile() {
       setAlert("Profile saved locally (Offline)!");
     }
   };
+
+  if (loading) return <InnerLoader text="Loading profile parameters..." />;
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -3351,6 +3375,12 @@ function UserProfile() {
 // -------------------------------------------------------------
 function SettingsPage() {
   const { user } = useContext(AuthContext);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 700);
+    return () => clearTimeout(t);
+  }, []);
 
   // --- AI Configuration ---
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('api_key') || '');
@@ -3465,6 +3495,8 @@ function SettingsPage() {
   const inputCls = "w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 text-sm transition-colors";
   const selectCls = inputCls;
   const labelCls = "block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2";
+
+  if (loading) return <InnerLoader text="Loading system preferences..." />;
 
   return (
     <div className="space-y-6 max-w-3xl">
