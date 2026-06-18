@@ -1665,6 +1665,13 @@ function Dashboard() {
 // -------------------------------------------------------------
 function GreetingGenerator() {
   const { user } = useContext(AuthContext);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 700);
+    return () => clearTimeout(t);
+  }, []);
+
   const [name, setName] = useState(() => localStorage.getItem('gen_name') || '');
   const [destination, setDestination] = useState(() => localStorage.getItem('gen_destination') || '');
   const [bookingHistory, setBookingHistory] = useState(() => localStorage.getItem('gen_bookingHistory') || '1st Trip');
@@ -2238,6 +2245,8 @@ function GreetingGenerator() {
   };
 
   const [showOutputDrawer, setShowOutputDrawer] = useState(false);
+
+  if (loading) return <InnerLoader text="Initializing AI Generator..." />;
 
   return (
     <>
