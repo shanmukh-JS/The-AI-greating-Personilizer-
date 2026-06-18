@@ -3527,6 +3527,8 @@ function UserProfile() {
   const [alert, setAlert] = useState('');
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 700);
@@ -3535,12 +3537,19 @@ function UserProfile() {
 
     const handleUpdate = async (e) => {
     e.preventDefault();
+    setIsSavingProfile(true);
+    
+    // Artificial delay to show loading animation
+    await new Promise(r => setTimeout(r, 600));
+
     if (!email.match(/@g\.?mail\.com$/i)) {
       setAlert("Email must be a @gmail.com address.");
+      setIsSavingProfile(false);
       return;
     }
     if (!phone.match(/^\d{10}$/)) {
       setAlert("Phone number must be exactly 10 digits.");
+      setIsSavingProfile(false);
       return;
     }
 
@@ -3600,6 +3609,7 @@ function UserProfile() {
 
       setAlert("Profile parameters updated!");
       setIsEditing(false);
+      setIsSavingProfile(false);
     } catch (err) {
       if (uName) {
         localStorage.setItem('profile_fullName_' + uName, fullName);
@@ -3626,6 +3636,7 @@ function UserProfile() {
 
       setAlert("Profile saved locally (Offline)!");
       setIsEditing(false);
+      setIsSavingProfile(false);
     }
   };
 
@@ -3664,12 +3675,19 @@ function UserProfile() {
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
+    setIsSavingPassword(true);
+    
+    // Artificial delay to show loading animation
+    await new Promise(r => setTimeout(r, 600));
+
     if (newPassword !== confirmPassword) {
       setPasswordAlert("Passwords do not match!");
+      setIsSavingPassword(false);
       return;
     }
     if (newPassword.length < 8) {
       setPasswordAlert("Password must be at least 8 characters long.");
+      setIsSavingPassword(false);
       return;
     }
     try {
@@ -3680,11 +3698,13 @@ function UserProfile() {
       setNewPassword('');
       setConfirmPassword('');
       setTimeout(() => setPasswordAlert(''), 3000);
+      setIsSavingPassword(false);
     } catch (err) {
       if (user && user.username) {
         const currentCustom = localStorage.getItem('custom_password_' + user.username) || 'password123';
         if (currentPassword !== currentCustom && currentPassword !== 'ManivthaTravels2026!') {
           setPasswordAlert("Incorrect current password.");
+          setIsSavingPassword(false);
           return;
         }
         localStorage.setItem('custom_password_' + user.username, newPassword);
@@ -3693,8 +3713,10 @@ function UserProfile() {
         setNewPassword('');
         setConfirmPassword('');
         setTimeout(() => setPasswordAlert(''), 3000);
+        setIsSavingPassword(false);
       } else {
         setPasswordAlert(err.response?.data?.error || "Failed to change password.");
+        setIsSavingPassword(false);
       }
     }
   };
@@ -3845,8 +3867,18 @@ function UserProfile() {
                   <button type="button" onClick={() => setIsEditing(false)} className="px-6 py-3 mr-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-sm transition-colors">
                     Cancel
                   </button>
-                  <button type="submit" className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-500/20">
-                    Save Changes
+                  <button type="submit" disabled={isSavingProfile} className="px-8 py-3 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-75 disabled:cursor-wait min-w-[140px]">
+                    {isSavingProfile ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Changes'
+                    )}
                   </button>
                 </div>
               )}
@@ -3943,8 +3975,18 @@ function UserProfile() {
               )}
 
               <div className="flex justify-end pt-4 mt-6">
-                <button type="submit" disabled={!currentPassword || !newPassword || !confirmPassword} className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
-                  Change Password
+                <button type="submit" disabled={!currentPassword || !newPassword || !confirmPassword || isSavingPassword} className="px-8 py-3 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px]">
+                  {isSavingPassword ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Changing...
+                    </>
+                  ) : (
+                    'Change Password'
+                  )}
                 </button>
               </div>
             </form>
