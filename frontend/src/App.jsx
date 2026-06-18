@@ -3576,7 +3576,7 @@ function UserProfile() {
       setTimeout(() => {
         setIsSavingProfile(false);
         localStorage.removeItem('token');
-        window.location.reload();
+        window.location.href = '/';
       }, 500);
       return;
     }
