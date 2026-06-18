@@ -131,12 +131,17 @@ export function AuthProvider({ children }) {
       
       console.warn("API Login failed (network offline), triggering simulated authentications...");
       // Simulation fallback for standalone runs when backend is offline
-      const customAgentPassword = localStorage.getItem('custom_password_agent');
-      const customAdminPassword = localStorage.getItem('custom_password_admin');
-      const customNiatPassword = localStorage.getItem('custom_password_NIAT x AURORA');
-      const isValidAgent = username === 'agent' && password === (customAgentPassword || 'password123');
-      const isValidAdmin = username === 'admin' && password === (customAdminPassword || 'password123');
-      const isValidNiatAurora = username === 'NIAT x AURORA' && password === (customNiatPassword || 'nxtwave@2026');
+      const customAgentUser = localStorage.getItem('custom_username_agent') || 'agent';
+      const customAdminUser = localStorage.getItem('custom_username_admin') || 'admin';
+      const customNiatUser = localStorage.getItem('custom_username_NIAT x AURORA') || 'NIAT x AURORA';
+
+      const customAgentPassword = localStorage.getItem('custom_password_' + customAgentUser) || 'password123';
+      const customAdminPassword = localStorage.getItem('custom_password_' + customAdminUser) || 'password123';
+      const customNiatPassword = localStorage.getItem('custom_password_' + customNiatUser) || 'nxtwave@2026';
+
+      const isValidAgent = username === customAgentUser && password === customAgentPassword;
+      const isValidAdmin = username === customAdminUser && password === customAdminPassword;
+      const isValidNiatAurora = username === customNiatUser && password === customNiatPassword;
 
       if (isValidAgent || isValidAdmin || isValidNiatAurora) {
         const dummyToken = `simulated_jwt_token_${username}`;
@@ -681,33 +686,43 @@ function LoginPage() {
           </div>
           
           <div className="grid grid-cols-2 gap-3 mt-4">
-            <button type="button" onClick={() => handleQuickDemo('agent', localStorage.getItem('custom_password_agent') || 'password123')} className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
-              {localStorage.getItem('profile_image_agent') ? (
-                <img src={localStorage.getItem('profile_image_agent')} alt="Agent" className="w-8 h-8 rounded-full mb-2 object-cover border border-[#759AF1]/50" />
-              ) : (
-                <div className="w-8 h-8 rounded-full mb-2 bg-[#759AF1]/20 border border-[#759AF1]/50 flex items-center justify-center text-[#759AF1] font-bold">A</div>
-              )}
-              <span className="text-[11px] font-extrabold text-[#759AF1] tracking-wider uppercase mb-1">Agent</span>
-              <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors">agent / {localStorage.getItem('custom_password_agent') ? '******' : 'password123'}</span>
-            </button>
-            <button type="button" onClick={() => handleQuickDemo('admin', localStorage.getItem('custom_password_admin') || 'password123')} className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
-              {localStorage.getItem('profile_image_admin') ? (
-                <img src={localStorage.getItem('profile_image_admin')} alt="Admin" className="w-8 h-8 rounded-full mb-2 object-cover border border-[#759AF1]/50" />
-              ) : (
-                <div className="w-8 h-8 rounded-full mb-2 bg-[#759AF1]/20 border border-[#759AF1]/50 flex items-center justify-center text-[#759AF1] font-bold">A</div>
-              )}
-              <span className="text-[11px] font-extrabold text-[#759AF1] tracking-wider uppercase mb-1">Admin</span>
-              <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors">admin / {localStorage.getItem('custom_password_admin') ? '******' : 'password123'}</span>
-            </button>
-            <button type="button" onClick={() => handleQuickDemo('NIAT x AURORA', localStorage.getItem('custom_password_NIAT x AURORA') || 'nxtwave@2026')} className="col-span-2 flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
-              {localStorage.getItem('profile_image_NIAT x AURORA') ? (
-                <img src={localStorage.getItem('profile_image_NIAT x AURORA')} alt="Master Admin" className="w-8 h-8 rounded-full mb-2 object-cover border border-[#14B8E6]/50" />
-              ) : (
-                <div className="w-8 h-8 rounded-full mb-2 bg-[#14B8E6]/20 border border-[#14B8E6]/50 flex items-center justify-center text-[#14B8E6] font-bold">N</div>
-              )}
-              <span className="text-[11px] font-extrabold text-[#14B8E6] tracking-wider uppercase mb-1">Master Admin</span>
-              <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors">NIAT x AURORA / {localStorage.getItem('custom_password_NIAT x AURORA') ? '******' : 'nxtwave@2026'}</span>
-            </button>
+            {(() => {
+              const agentUser = localStorage.getItem('custom_username_agent') || 'agent';
+              const adminUser = localStorage.getItem('custom_username_admin') || 'admin';
+              const niatUser = localStorage.getItem('custom_username_NIAT x AURORA') || 'NIAT x AURORA';
+
+              return (
+                <>
+                  <button type="button" onClick={() => handleQuickDemo(agentUser, localStorage.getItem('custom_password_' + agentUser) || 'password123')} className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
+                    {localStorage.getItem('profile_image_' + agentUser) ? (
+                      <img src={localStorage.getItem('profile_image_' + agentUser)} alt="Agent" className="w-8 h-8 rounded-full mb-2 object-cover border border-[#759AF1]/50" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full mb-2 bg-[#759AF1]/20 border border-[#759AF1]/50 flex items-center justify-center text-[#759AF1] font-bold">A</div>
+                    )}
+                    <span className="text-[11px] font-extrabold text-[#759AF1] tracking-wider uppercase mb-1">Agent</span>
+                    <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors truncate w-full">{agentUser} / {localStorage.getItem('custom_password_' + agentUser) ? '******' : 'password123'}</span>
+                  </button>
+                  <button type="button" onClick={() => handleQuickDemo(adminUser, localStorage.getItem('custom_password_' + adminUser) || 'password123')} className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
+                    {localStorage.getItem('profile_image_' + adminUser) ? (
+                      <img src={localStorage.getItem('profile_image_' + adminUser)} alt="Admin" className="w-8 h-8 rounded-full mb-2 object-cover border border-[#759AF1]/50" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full mb-2 bg-[#759AF1]/20 border border-[#759AF1]/50 flex items-center justify-center text-[#759AF1] font-bold">A</div>
+                    )}
+                    <span className="text-[11px] font-extrabold text-[#759AF1] tracking-wider uppercase mb-1">Admin</span>
+                    <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors truncate w-full">{adminUser} / {localStorage.getItem('custom_password_' + adminUser) ? '******' : 'password123'}</span>
+                  </button>
+                  <button type="button" onClick={() => handleQuickDemo(niatUser, localStorage.getItem('custom_password_' + niatUser) || 'nxtwave@2026')} className="col-span-2 flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
+                    {localStorage.getItem('profile_image_' + niatUser) ? (
+                      <img src={localStorage.getItem('profile_image_' + niatUser)} alt="Master Admin" className="w-8 h-8 rounded-full mb-2 object-cover border border-[#14B8E6]/50" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full mb-2 bg-[#14B8E6]/20 border border-[#14B8E6]/50 flex items-center justify-center text-[#14B8E6] font-bold">N</div>
+                    )}
+                    <span className="text-[11px] font-extrabold text-[#14B8E6] tracking-wider uppercase mb-1">Master Admin</span>
+                    <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors truncate w-full">{niatUser} / {localStorage.getItem('custom_password_' + niatUser) ? '******' : 'nxtwave@2026'}</span>
+                  </button>
+                </>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -3750,7 +3765,7 @@ function UserProfile() {
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Username</label>
-                  <input type="text" disabled value={user?.username} className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl outline-none text-sm text-slate-500 font-mono opacity-70 cursor-not-allowed" />
+                  <input type="text" disabled={!isEditing} value={usernameInput} onChange={e => setUsernameInput(e.target.value)} className={`w-full px-4 py-3 border rounded-xl outline-none text-sm font-mono transition-colors ${!isEditing ? 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 opacity-70' : 'bg-slate-50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:border-emerald-500'}`} />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
