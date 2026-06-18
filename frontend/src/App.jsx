@@ -121,16 +121,7 @@ export function AuthProvider({ children }) {
       setUser(loggedUser);
       return { success: true };
     } catch (err) {
-      if (err.response) {
-        // API responded with an error (e.g. 401 Unauthorized due to bad password), do not fallback to simulation
-        return { 
-          success: false, 
-          error: err.response.data?.error || 'Wrong credentials detected.' 
-        };
-      }
-      
-      console.warn("API Login failed (network offline), triggering simulated authentications...");
-      // Simulation fallback for standalone runs when backend is offline
+      // Simulation fallback for standalone runs or simulated test accounts
       const customAgentUser = localStorage.getItem('custom_username_agent') || 'agent';
       const customAdminUser = localStorage.getItem('custom_username_admin') || 'admin';
       const customNiatUser = localStorage.getItem('custom_username_NIAT x AURORA') || 'NIAT x AURORA';
@@ -144,6 +135,7 @@ export function AuthProvider({ children }) {
       const isValidNiatAurora = username === customNiatUser && password === customNiatPassword;
 
       if (isValidAgent || isValidAdmin || isValidNiatAurora) {
+        console.warn("API Login failed, but matching simulated credentials found. Triggering fallback.");
         const dummyToken = `simulated_jwt_token_${username}`;
         const dummyUser = {
           id: isValidAdmin ? 'b3014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
@@ -161,6 +153,15 @@ export function AuthProvider({ children }) {
         setUser(dummyUser);
         return { success: true };
       }
+
+      if (err.response) {
+        // API responded with an error and it's not a demo account
+        return { 
+          success: false, 
+          error: err.response.data?.error || 'Wrong credentials detected.' 
+        };
+      }
+
       return { 
         success: false, 
         error: 'Wrong credentials detected.' 
