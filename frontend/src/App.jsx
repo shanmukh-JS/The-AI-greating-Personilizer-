@@ -469,7 +469,9 @@ function Layout({ children }) {
             </button>
             <span className="hidden sm:block text-sm font-semibold text-slate-500 dark:text-slate-400 select-none">
               Welcome, <span className="text-slate-800 dark:text-slate-100">{user?.username}</span>
-              <span className="ml-1.5 text-xs font-normal capitalize text-slate-400 dark:text-slate-500">({user?.role})</span>
+              <span className="ml-1.5 text-xs font-normal capitalize text-slate-400 dark:text-slate-500">
+                ({user?.id === 'a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' ? 'Master Admin' : user?.id === 'b3014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' ? 'Admin' : 'Agent'})
+              </span>
             </span>
           </div>
 
