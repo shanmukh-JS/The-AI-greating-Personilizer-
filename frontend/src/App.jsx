@@ -3760,20 +3760,10 @@ function UserProfile() {
                       {email.match(/@g\.?mail\.com$/i) ? '✓ Valid @gmail.com address detected.' : '✗ Email must be a @gmail.com address.'}
                     </div>
                   )}
-                  {isEditing && email.length > 0 && (
-                    <div className={`mt-1.5 text-xs font-semibold ${email.match(/@g\.?mail\.com$/i) ? 'text-emerald-500' : 'text-rose-500'}`}>
-                      {email.match(/@g\.?mail\.com$/i) ? '✓ Valid @gmail.com address detected.' : '✗ Email must be a @gmail.com address.'}
-                    </div>
-                  )}
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Phone Number</label>
                   <input type="tel" disabled={!isEditing} value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" />
-                  {isEditing && phone.length > 0 && (
-                    <div className={`mt-1.5 text-xs font-semibold ${phone.match(/^\d{10}$/) ? 'text-emerald-500' : 'text-rose-500'}`}>
-                      {phone.match(/^\d{10}$/) ? '✓ Valid 10-digit phone number detected.' : '✗ Phone number must be exactly 10 digits.'}
-                    </div>
-                  )}
                   {isEditing && phone.length > 0 && (
                     <div className={`mt-1.5 text-xs font-semibold ${phone.match(/^\d{10}$/) ? 'text-emerald-500' : 'text-rose-500'}`}>
                       {phone.match(/^\d{10}$/) ? '✓ Valid 10-digit phone number detected.' : '✗ Phone number must be exactly 10 digits.'}
