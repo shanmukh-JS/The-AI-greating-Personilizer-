@@ -16,7 +16,7 @@ import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation, Navigate,
 
 // API Configuration & Base Instance with Automatic Interceptors
 const API_URL = import.meta.env.VITE_API_URL;
-const api = axios.create({ baseURL: API_URL });
+const api = axios.create({ baseURL: API_URL, timeout: 1000 });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
@@ -3540,7 +3540,7 @@ function UserProfile() {
     setIsSavingProfile(true);
     
     // Artificial delay to show loading animation
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 200));
 
     if (!email.match(/@g\.?mail\.com$/i)) {
       setAlert("Email must be a @gmail.com address.");
@@ -3576,7 +3576,7 @@ function UserProfile() {
         setIsSavingProfile(false);
         localStorage.removeItem('token');
         window.location.reload();
-      }, 1500);
+      }, 500);
       return;
     }
     
@@ -3680,7 +3680,7 @@ function UserProfile() {
     setIsSavingPassword(true);
     
     // Artificial delay to show loading animation
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 200));
 
     if (newPassword !== confirmPassword) {
       setPasswordAlert("Passwords do not match!");
