@@ -1,0 +1,43 @@
+/* -------------------------------------------------------------
+   SYSTEM SETTINGS OVERRIDES
+   ------------------------------------------------------------- */
+
+/* Compact Mode */
+html.compact-mode body {
+  font-size: 0.925rem;
+}
+
+html.compact-mode .p-6 {
+  padding: 1.25rem !important;
+}
+
+html.compact-mode .py-3 {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+html.compact-mode .px-4 {
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+}
+
+html.compact-mode .gap-6 {
+  gap: 1rem !important;
+}
+
+html.compact-mode .space-y-6 > * + * {
+  margin-top: 1rem !important;
+}
+
+html.compact-mode h1.text-3xl {
+  font-size: 1.5rem !important;
+}
+
+/* Disable Animations */
+html.disable-animations *,
+html.disable-animations *:before,
+html.disable-animations *:after {
+  transition: none !important;
+  animation: none !important;
+  transform: none !important;
+}

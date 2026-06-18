@@ -8,7 +8,7 @@ import {
   Sparkles, History, LayoutDashboard, FileCode, Star, 
   Settings, User, LogOut, Copy, Download, Share2, 
   Menu, X, Sun, Moon, AlertCircle, Plus, Edit, Trash2, CheckCircle, HelpCircle, Calendar,
-  Lock, Eye, EyeOff, RefreshCw, ChevronLeft, ChevronRight, CalendarDays, Camera, UploadCloud, ShieldCheck
+  Lock, Eye, EyeOff, RefreshCw, ChevronLeft, ChevronRight, CalendarDays, Camera, UploadCloud, ShieldCheck, MapPin
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -1708,6 +1708,7 @@ function GreetingGenerator() {
   }, []);
 
   const [name, setName] = useState(() => localStorage.getItem('gen_name') || '');
+    
   const [destination, setDestination] = useState(() => localStorage.getItem('gen_destination') || '');
   const [bookingHistory, setBookingHistory] = useState(() => localStorage.getItem('gen_bookingHistory') || '1st Trip');
   const [travelType, setTravelType] = useState(() => localStorage.getItem('gen_travelType') || 'Family Trip');
@@ -2088,6 +2089,7 @@ function GreetingGenerator() {
     setSpecialNotes(preset.notes || '');
   };
 
+  
   const handleGenerate = async (e) => {
     e.preventDefault();
     setLoading(true);
