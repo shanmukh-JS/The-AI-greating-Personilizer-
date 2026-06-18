@@ -11,6 +11,8 @@ import {
   Lock, Eye, EyeOff, RefreshCw, ChevronLeft, ChevronRight, CalendarDays, Camera, UploadCloud, ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
+import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
 
 // API Configuration & Base Instance with Automatic Interceptors
 const API_URL = import.meta.env.VITE_API_URL;
