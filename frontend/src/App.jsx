@@ -1949,7 +1949,7 @@ function GreetingGenerator() {
       } catch (err) {
         local = [];
       }
-      if (local.length === 0 && !localStorage.getItem('custom_presets_initialized')) {
+      if (local.length === 0) {
         local = [...defaultPresetsList];
         localStorage.setItem('custom_presets', JSON.stringify(local));
         localStorage.setItem('custom_presets_initialized', 'true');
