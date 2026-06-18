@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation, Navigate, useSearchParams } from 'react-router-dom';
 
 // API Configuration & Base Instance with Automatic Interceptors
 const API_URL = import.meta.env.VITE_API_URL;
@@ -471,9 +471,6 @@ function LandingPage() {
           <div className="h-9 w-9 rounded-xl hero-gradient flex items-center justify-center text-white font-extrabold text-xl">M</div>
           <span className="font-display font-bold text-xl tracking-tight">Manivtha Tours</span>
         </div>
-        <Link to="/login" className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-sm transition-colors duration-150">
-          Staff Login
-        </Link>
       </header>
 
       {/* Hero */}
@@ -3392,10 +3389,9 @@ function UserProfile() {
   const { user, setUser } = useContext(AuthContext);
   const [email, setEmail] = useState(user?.email || '');
   const [fullName, setFullName] = useState(() => localStorage.getItem('profile_fullName') || user?.username || '');
-  const [phone, setPhone] = useState(() => localStorage.getItem('profile_phone') || '');
-  const [dob, setDob] = useState(() => localStorage.getItem('profile_dob') || '');
-  const [location, setLocation] = useState(() => localStorage.getItem('profile_location') || '');
-  const [language, setLanguage] = useState(() => localStorage.getItem('profile_language') || 'English');
+  const [phone, setPhone] = useState(user?.phone || localStorage.getItem('profile_phone') || '');
+  const [location, setLocation] = useState(user?.location || localStorage.getItem('profile_location') || '');
+  const [profileImage, setProfileImage] = useState(user?.profile_image || '');
   const [timezone, setTimezone] = useState(() => localStorage.getItem('profile_timezone') || 'UTC');
   
   const [currentPassword, setCurrentPassword] = useState('');
@@ -3415,16 +3411,23 @@ function UserProfile() {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+    if (!email.match(/@g\.?mail\.com$/i)) {
+      setAlert("Email must be a @gmail.com address.");
+      return;
+    }
+    if (!phone.match(/^\d{10}$/)) {
+      setAlert("Phone number must be exactly 10 digits.");
+      return;
+    }
+    
     try {
-      const res = await api.put('/profile', { email });
+      const res = await api.put('/profile', { email, phone, location, profile_image: profileImage });
       setUser(res.data.user);
       
       // Save local fields
       localStorage.setItem('profile_fullName', fullName);
       localStorage.setItem('profile_phone', phone);
-      localStorage.setItem('profile_dob', dob);
       localStorage.setItem('profile_location', location);
-      localStorage.setItem('profile_language', language);
       localStorage.setItem('profile_timezone', timezone);
 
       setAlert("Profile parameters updated!");
@@ -3432,16 +3435,47 @@ function UserProfile() {
     } catch (err) {
       localStorage.setItem('profile_fullName', fullName);
       localStorage.setItem('profile_phone', phone);
-      localStorage.setItem('profile_dob', dob);
       localStorage.setItem('profile_location', location);
-      localStorage.setItem('profile_language', language);
       localStorage.setItem('profile_timezone', timezone);
       setAlert("Profile saved locally (Offline)!");
       setIsEditing(false);
     }
   };
 
-  const handlePasswordChange = (e) => {
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      setAlert("Geolocation is not supported by your browser");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      try {
+        const { latitude, longitude } = position.coords;
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+        const data = await res.json();
+        const city = data.address.city || data.address.town || data.address.village || '';
+        const state = data.address.state || '';
+        setLocation(`${city}, ${state}`.replace(/^, | , /g, ''));
+      } catch (err) {
+        setAlert("Failed to fetch location from coordinates");
+      }
+    }, () => {
+      setAlert("Unable to retrieve your location");
+    });
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result);
+        setIsEditing(true); // Trigger edit mode so they save it
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePasswordChange = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       setPasswordAlert("Passwords do not match!");
@@ -3451,12 +3485,16 @@ function UserProfile() {
       setPasswordAlert("Password must be at least 8 characters long.");
       return;
     }
-    // Simulate password change
-    setPasswordAlert("Password successfully changed!");
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setTimeout(() => setPasswordAlert(''), 3000);
+    try {
+      await api.put('/profile/password', { currentPassword, newPassword });
+      setPasswordAlert("Password successfully changed!");
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setPasswordAlert(''), 3000);
+    } catch (err) {
+      setPasswordAlert(err.response?.data?.error || "Failed to change password.");
+    }
   };
 
   const calculateStrength = (pwd) => {
@@ -3494,14 +3532,16 @@ function UserProfile() {
           <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-[24px] p-8 shadow-xl shadow-slate-200/50 dark:shadow-none flex flex-col items-center text-center transition-all">
             <div className="relative group mb-6">
               <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                <User className="h-16 w-16 text-slate-400" />
+                {profileImage ? (
+                  <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="h-16 w-16 text-slate-400" />
+                )}
               </div>
-              <button 
-                onClick={() => window.alert("Avatar upload simulated.")}
-                className="absolute bottom-0 right-0 p-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full shadow-lg transition-transform hover:scale-110"
-              >
+              <label className="absolute bottom-0 right-0 p-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full shadow-lg transition-transform hover:scale-110 cursor-pointer">
                 <Camera className="h-4 w-4" />
-              </button>
+                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+              </label>
             </div>
             
             <h2 className="text-xl font-display font-bold text-slate-900 dark:text-white">{fullName || user?.username}</h2>
@@ -3513,10 +3553,11 @@ function UserProfile() {
             </div>
 
             <div className="w-full flex flex-col gap-3">
-              <button onClick={() => window.alert("Avatar upload simulated.")} className="w-full py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2">
+              <label className="w-full py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer">
                 <UploadCloud className="h-4 w-4" /> Upload Photo
-              </button>
-              <button className="w-full py-2.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl font-semibold text-sm transition-colors">
+                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+              </label>
+              <button onClick={() => { setProfileImage(''); setIsEditing(true); }} className="w-full py-2.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl font-semibold text-sm transition-colors">
                 Remove Photo
               </button>
             </div>
