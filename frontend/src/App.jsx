@@ -1309,7 +1309,7 @@ function Dashboard() {
             </span>
           </div>
           <div className="mt-4">
-            <p className="text-3xl font-extrabold font-display text-slate-900 dark:text-white">{metrics?.totalGreetings || 12}</p>
+            <p className="text-3xl font-extrabold font-display text-slate-900 dark:text-white">{metrics?.totalGreetings ?? 12}</p>
             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-1">Total Greetings</p>
           </div>
         </div>
@@ -1326,7 +1326,7 @@ function Dashboard() {
           </div>
           <div className="mt-4">
             <p className="text-3xl font-extrabold font-display text-slate-900 dark:text-white">
-              {metrics?.averageRating || 4.2}<span className="text-sm font-semibold text-slate-500">/5</span>
+              {metrics?.averageRating ?? 4.2}<span className="text-sm font-semibold text-slate-500">/5</span>
             </p>
             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-1">Average Rating</p>
           </div>
@@ -1343,7 +1343,7 @@ function Dashboard() {
             </span>
           </div>
           <div className="mt-4">
-            <p className="text-3xl font-extrabold font-display text-slate-900 dark:text-white">{metrics?.feedbackCount || 5}</p>
+            <p className="text-3xl font-extrabold font-display text-slate-900 dark:text-white">{metrics?.feedbackCount ?? 5}</p>
             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider mt-1">Total Feedback</p>
           </div>
         </div>
