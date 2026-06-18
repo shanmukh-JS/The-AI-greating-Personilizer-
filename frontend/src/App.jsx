@@ -3518,7 +3518,7 @@ function TemplatesManager() {
 function UserProfile() {
   const { user, setUser } = useContext(AuthContext);
   const [email, setEmail] = useState(user?.email || '');
-  const [fullName, setFullName] = useState(() => user?.username || '');
+  const [fullName, setFullName] = useState(() => localStorage.getItem('profile_fullName_' + user?.username) || user?.username || '');
   const [phone, setPhone] = useState(user?.phone  || '');
   const [location, setLocation] = useState(user?.location  || '');
   const [profileImage, setProfileImage] = useState(user?.profile_image || '');
@@ -3574,11 +3574,20 @@ function UserProfile() {
           localStorage.setItem('custom_username_' + baseRole, newU);
       }
       
+      localStorage.setItem('profile_fullName_' + newU, localStorage.getItem('profile_fullName_' + oldU) || '');
       localStorage.setItem('profile_image_' + newU, localStorage.getItem('profile_image_' + oldU) || '');
       localStorage.setItem('profile_location_' + newU, location);
       localStorage.setItem('profile_phone_' + newU, phone);
       localStorage.setItem('profile_email_' + newU, email);
       localStorage.setItem('custom_password_' + newU, localStorage.getItem('custom_password_' + oldU) || '');
+      
+      localStorage.removeItem('profile_fullName_' + oldU);
+      localStorage.removeItem('profile_image_' + oldU);
+      localStorage.removeItem('profile_location_' + oldU);
+      localStorage.removeItem('profile_phone_' + oldU);
+      localStorage.removeItem('profile_email_' + oldU);
+      localStorage.removeItem('custom_password_' + oldU);
+      
       setAlert("Username changed successfully! Syncing credentials...");
       setTimeout(() => {
         clearTimeout(safetyTimer); setIsSavingProfile(false);
