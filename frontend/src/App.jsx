@@ -1961,8 +1961,12 @@ function GreetingGenerator() {
     setPresetsLoading(true);
     try {
       const res = await api.get('/presets');
-      setPresets(res.data);
-      localStorage.setItem('custom_presets', JSON.stringify(res.data));
+      let data = res.data;
+      if (data.length === 0) {
+        data = [...defaultPresetsList];
+      }
+      setPresets(data);
+      localStorage.setItem('custom_presets', JSON.stringify(data));
     } catch (e) {
       console.warn("API offline, falling back to local storage presets");
       let local = [];
