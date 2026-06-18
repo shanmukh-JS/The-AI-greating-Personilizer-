@@ -2450,7 +2450,11 @@ function GreetingGenerator() {
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            {presets.map(preset => {
+            {presetsLoading ? (
+              [...Array(6)].map((_, i) => (
+                <div key={i} className="h-8 w-32 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse"></div>
+              ))
+            ) : presets.map(preset => {
               let colorClasses = "bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 border-violet-500/10";
               if (preset.id === 'p1' || preset.label?.includes('Tirupati')) {
                 colorClasses = "bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20 border-indigo-500/10";
