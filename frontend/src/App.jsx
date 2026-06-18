@@ -105,6 +105,31 @@ export function AuthProvider({ children }) {
           }
         }
       }
+      
+      // Enforce History Retention Period
+      const enforceRetention = () => {
+        const retentionDays = localStorage.getItem('settings_historyRetention') || '90';
+        if (retentionDays === 'forever') return;
+        const days = parseInt(retentionDays, 10);
+        if (isNaN(days)) return;
+
+        const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+        const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+        
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - days);
+
+        const prunedGreetings = localGreetings.filter(g => new Date(g.created_at) >= cutoff);
+        const prunedIds = new Set(prunedGreetings.map(g => g.id));
+        const prunedFeedbacks = localFeedbacks.filter(f => prunedIds.has(f.greeting_id));
+
+        if (prunedGreetings.length !== localGreetings.length) {
+          localStorage.setItem('local_greetings', JSON.stringify(prunedGreetings));
+          localStorage.setItem('local_feedbacks', JSON.stringify(prunedFeedbacks));
+        }
+      };
+      enforceRetention();
+      
       setLoading(false);
     }
     initUser();
