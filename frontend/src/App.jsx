@@ -51,10 +51,10 @@ export function AuthProvider({ children }) {
                 'd2903b4b-48ab-46cb-8b8f-c20d8c4a0a0f',
             username,
             role: (username === 'admin' || username === 'NIAT x AURORA') ? 'admin' : 'staff',
-            email: localStorage.getItem('profile_email_' + username) || localStorage.getItem('profile_email') || (username === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${username}@manivthatravels.com`),
-            profile_image: localStorage.getItem('profile_image_' + username) || localStorage.getItem('profile_image'),
-            location: localStorage.getItem('profile_location_' + username) || localStorage.getItem('profile_location'),
-            phone: localStorage.getItem('profile_phone_' + username) || localStorage.getItem('profile_phone')
+            email: localStorage.getItem('profile_email_' + username)  || (username === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${username}@manivthatravels.com`),
+            profile_image: localStorage.getItem('profile_image_' + username) ,
+            location: localStorage.getItem('profile_location_' + username) ,
+            phone: localStorage.getItem('profile_phone_' + username) 
           };
           setUser(dummyUser);
           setLoading(false);
@@ -67,10 +67,10 @@ export function AuthProvider({ children }) {
           const apiUser = res.data;
           const uName = apiUser.username;
           if (uName) {
-            apiUser.profile_image = localStorage.getItem('profile_image_' + uName) || apiUser.profile_image || localStorage.getItem('profile_image');
-            apiUser.location = localStorage.getItem('profile_location_' + uName) || apiUser.location || localStorage.getItem('profile_location');
-            apiUser.phone = localStorage.getItem('profile_phone_' + uName) || apiUser.phone || localStorage.getItem('profile_phone');
-            apiUser.email = localStorage.getItem('profile_email_' + uName) || apiUser.email || localStorage.getItem('profile_email');
+            apiUser.profile_image = localStorage.getItem('profile_image_' + uName) || apiUser.profile_image ;
+            apiUser.location = localStorage.getItem('profile_location_' + uName) || apiUser.location ;
+            apiUser.phone = localStorage.getItem('profile_phone_' + uName) || apiUser.phone ;
+            apiUser.email = localStorage.getItem('profile_email_' + uName) || apiUser.email ;
           }
           setUser(apiUser);
         } catch (e) {
@@ -88,10 +88,10 @@ export function AuthProvider({ children }) {
               const decoded = JSON.parse(jsonPayload);
               const uName = decoded.username;
               if (uName) {
-                decoded.profile_image = localStorage.getItem('profile_image_' + uName) || decoded.profile_image || localStorage.getItem('profile_image');
-                decoded.location = localStorage.getItem('profile_location_' + uName) || decoded.location || localStorage.getItem('profile_location');
-                decoded.phone = localStorage.getItem('profile_phone_' + uName) || decoded.phone || localStorage.getItem('profile_phone');
-                decoded.email = localStorage.getItem('profile_email_' + uName) || decoded.email || localStorage.getItem('profile_email');
+                decoded.profile_image = localStorage.getItem('profile_image_' + uName) || decoded.profile_image ;
+                decoded.location = localStorage.getItem('profile_location_' + uName) || decoded.location ;
+                decoded.phone = localStorage.getItem('profile_phone_' + uName) || decoded.phone ;
+                decoded.email = localStorage.getItem('profile_email_' + uName) || decoded.email ;
               }
               setUser(decoded);
             } catch (err) {
@@ -3512,11 +3512,11 @@ function TemplatesManager() {
 function UserProfile() {
   const { user, setUser } = useContext(AuthContext);
   const [email, setEmail] = useState(user?.email || '');
-  const [fullName, setFullName] = useState(() => localStorage.getItem('profile_fullName') || user?.username || '');
-  const [phone, setPhone] = useState(user?.phone || localStorage.getItem('profile_phone') || '');
-  const [location, setLocation] = useState(user?.location || localStorage.getItem('profile_location') || '');
+  const [fullName, setFullName] = useState(() => user?.username || '');
+  const [phone, setPhone] = useState(user?.phone  || '');
+  const [location, setLocation] = useState(user?.location  || '');
   const [profileImage, setProfileImage] = useState(user?.profile_image || '');
-  const [timezone, setTimezone] = useState(() => localStorage.getItem('profile_timezone') || 'UTC');
+  const [timezone, setTimezone] = useState(() => localStorage.getItem('profile_timezone_' + user?.username) || 'UTC');
   const [usernameInput, setUsernameInput] = useState(user?.username || '');
   
   const [currentPassword, setCurrentPassword] = useState('');
@@ -3596,12 +3596,7 @@ function UserProfile() {
         localStorage.setItem('profile_timezone_' + uName, timezone);
         localStorage.setItem('profile_image_' + uName, profileImage);
       }
-      localStorage.setItem('profile_fullName', fullName);
-      localStorage.setItem('profile_email', email);
-      localStorage.setItem('profile_phone', phone);
-      localStorage.setItem('profile_location', location);
-      localStorage.setItem('profile_timezone', timezone);
-      localStorage.setItem('profile_image', profileImage);
+      // Global overrides removed to prevent cross-contamination
 
       setUser({
         ...user,
