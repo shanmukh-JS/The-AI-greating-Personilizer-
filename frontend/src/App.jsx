@@ -3825,7 +3825,7 @@ function UserProfile() {
             
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-8">
               <ShieldCheck className="h-3.5 w-3.5" />
-              {user?.role === 'admin' ? 'Admin' : 'Premium User'}
+              {user?.id === 'a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' ? 'Master Admin' : user?.id === 'b3014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' ? 'Admin' : 'Agent'}
             </div>
 
             <div className="w-full flex flex-col gap-3">
