@@ -656,7 +656,7 @@ function LoginPage() {
               value={username} 
               onChange={e => setUsername(e.target.value)} 
               placeholder="Username" 
-              className="w-full pl-11 pr-4 py-3.5 bg-[#1A2235]/60 border border-slate-700/50 focus:border-blue-500 focus:bg-[#1A2235] focus:ring-1 focus:ring-blue-500 rounded-xl !text-white outline-none transition-all placeholder:text-slate-500 font-semibold text-[15px]" 
+              className="force-white w-full pl-11 pr-4 py-3.5 bg-[#1A2235]/60 border border-slate-700/50 focus:border-blue-500 focus:bg-[#1A2235] focus:ring-1 focus:ring-blue-500 rounded-xl !text-white outline-none transition-all placeholder:text-slate-500 font-semibold text-[15px]" 
             />
           </div>
           
@@ -670,7 +670,7 @@ function LoginPage() {
               value={password} 
               onChange={e => setPassword(e.target.value)} 
               placeholder="Password" 
-              className="w-full pl-11 pr-12 py-3.5 bg-[#1A2235]/60 border border-slate-700/50 focus:border-blue-500 focus:bg-[#1A2235] focus:ring-1 focus:ring-blue-500 rounded-xl !text-white outline-none transition-all placeholder:text-slate-500 font-semibold text-[15px]" 
+              className="force-white w-full pl-11 pr-12 py-3.5 bg-[#1A2235]/60 border border-slate-700/50 focus:border-blue-500 focus:bg-[#1A2235] focus:ring-1 focus:ring-blue-500 rounded-xl !text-white outline-none transition-all placeholder:text-slate-500 font-semibold text-[15px]" 
             />
             <button 
               type="button" 

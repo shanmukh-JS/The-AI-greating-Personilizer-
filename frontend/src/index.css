@@ -66,9 +66,9 @@
 /* -------------------------------------------------------------
    LIGHT THEME CONTRAST & LEGIBILITY OVERRIDES
    ------------------------------------------------------------- */
-html:not(.dark) input:not([disabled]),
-html:not(.dark) select,
-html:not(.dark) textarea {
+html:not(.dark) input:not([disabled]):not(.force-white),
+html:not(.dark) select:not(.force-white),
+html:not(.dark) textarea:not(.force-white) {
   color: #0f172a !important; /* slate-900 for high readability */
 }
 
