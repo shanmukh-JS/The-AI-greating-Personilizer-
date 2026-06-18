@@ -51,11 +51,11 @@ export function AuthProvider({ children }) {
           
           const dummyUser = {
             id: baseRole === 'admin' ? 'b3014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
-                baseRole === 'NIAT x AURORA' ? 'a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
+                baseRole === 'HELLO JAMINISHANNU' ? 'a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
                 'd2903b4b-48ab-46cb-8b8f-c20d8c4a0a0f',
             username: finalUsername,
-            role: (baseRole === 'admin' || baseRole === 'NIAT x AURORA') ? 'admin' : 'staff',
-            email: localStorage.getItem('profile_email_' + finalUsername)  || (baseRole === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${baseRole}@manivthatravels.com`),
+            role: (baseRole === 'admin' || baseRole === 'HELLO JAMINISHANNU') ? 'admin' : 'staff',
+            email: localStorage.getItem('profile_email_' + finalUsername)  || (baseRole === 'HELLO JAMINISHANNU' ? 'hellojaminishannu@manivthatravels.com' : `${baseRole}@manivthatravels.com`),
             profile_image: localStorage.getItem('profile_image_' + finalUsername) ,
             location: localStorage.getItem('profile_location_' + finalUsername) ,
             phone: localStorage.getItem('profile_phone_' + finalUsername) 
@@ -128,7 +128,7 @@ export function AuthProvider({ children }) {
       // Simulation fallback for standalone runs or simulated test accounts
       const customAgentUser = localStorage.getItem('custom_username_agent') || 'agent';
       const customAdminUser = localStorage.getItem('custom_username_admin') || 'admin';
-      const customNiatUser = localStorage.getItem('custom_username_NIAT x AURORA') || 'NIAT x AURORA';
+      const customNiatUser = localStorage.getItem('custom_username_HELLO JAMINISHANNU') || 'HELLO JAMINISHANNU';
 
       const customAgentPassword = localStorage.getItem('custom_password_' + customAgentUser) || 'password123';
       const customAdminPassword = localStorage.getItem('custom_password_' + customAdminUser) || 'password123';
@@ -142,7 +142,7 @@ export function AuthProvider({ children }) {
         console.warn("API Login failed, but matching simulated credentials found. Triggering fallback.");
         let baseRoleForToken = 'agent';
         if (isValidAdmin) baseRoleForToken = 'admin';
-        else if (isValidNiatAurora) baseRoleForToken = 'NIAT x AURORA';
+        else if (isValidNiatAurora) baseRoleForToken = 'HELLO JAMINISHANNU';
         
         const dummyToken = `simulated_jwt_token_${baseRoleForToken}`;
         const dummyUser = {
@@ -151,7 +151,7 @@ export function AuthProvider({ children }) {
               'd2903b4b-48ab-46cb-8b8f-c20d8c4a0a0f',
           username,
           role: (isValidAdmin || isValidNiatAurora) ? 'admin' : 'staff',
-          email: localStorage.getItem('profile_email_' + username) || (baseRoleForToken === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${baseRoleForToken}@manivthatravels.com`),
+          email: localStorage.getItem('profile_email_' + username) || (baseRoleForToken === 'HELLO JAMINISHANNU' ? 'hellojaminishannu@manivthatravels.com' : `${baseRoleForToken}@manivthatravels.com`),
           profile_image: localStorage.getItem('profile_image_' + username),
           location: localStorage.getItem('profile_location_' + username),
           phone: localStorage.getItem('profile_phone_' + username)
@@ -700,7 +700,7 @@ function LoginPage() {
             {(() => {
               const agentUser = localStorage.getItem('custom_username_agent') || 'agent';
               const adminUser = localStorage.getItem('custom_username_admin') || 'admin';
-              const niatUser = localStorage.getItem('custom_username_NIAT x AURORA') || 'NIAT x AURORA';
+              const niatUser = localStorage.getItem('custom_username_HELLO JAMINISHANNU') || 'HELLO JAMINISHANNU';
 
               const agentName = localStorage.getItem('profile_fullName_' + agentUser) || agentUser;
               const adminName = localStorage.getItem('profile_fullName_' + adminUser) || adminUser;
@@ -3576,7 +3576,7 @@ function UserProfile() {
       let baseRole = '';
       if (oldU === (localStorage.getItem('custom_username_agent') || 'agent')) baseRole = 'agent';
       else if (oldU === (localStorage.getItem('custom_username_admin') || 'admin')) baseRole = 'admin';
-      else if (oldU === (localStorage.getItem('custom_username_NIAT x AURORA') || 'NIAT x AURORA')) baseRole = 'NIAT x AURORA';
+      else if (oldU === (localStorage.getItem('custom_username_HELLO JAMINISHANNU') || 'HELLO JAMINISHANNU')) baseRole = 'HELLO JAMINISHANNU';
 
       if (baseRole) {
           localStorage.setItem('custom_username_' + baseRole, newU);
@@ -3966,7 +3966,7 @@ function UserProfile() {
                   </div>
                   {currentPassword.length > 0 && (() => {
                     const custom = localStorage.getItem('custom_password_' + user?.username) || 'password123';
-                    const isNiatAurora = user?.username === 'NIAT x AURORA';
+                    const isNiatAurora = user?.username === 'HELLO JAMINISHANNU';
                     const isValid = currentPassword === custom || currentPassword === 'ManivthaTravels2026!' || (isNiatAurora && currentPassword === 'nxtwave@2026');
                     return (
                       <div className={`mt-1.5 text-xs font-semibold ${isValid ? 'text-emerald-500' : 'text-rose-500'}`}>
