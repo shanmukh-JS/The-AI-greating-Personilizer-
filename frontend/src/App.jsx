@@ -2849,13 +2849,15 @@ function GreetingGenerator() {
                               <Share2 className="h-3.5 w-3.5" />
                               <span>Send</span>
                             </button>
-                            <button 
-                              onClick={() => handleDeleteGreeting(record.id)} 
-                              title="Delete Record Permanently" 
-                              className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                            {user?.role === 'admin' && (
+                              <button 
+                                onClick={() => handleDeleteGreeting(record.id)} 
+                                title="Delete Record Permanently" 
+                                className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -3019,9 +3021,11 @@ function HistoryLog() {
                     </td>
                     <td className="p-4 text-xs text-slate-500">{new Date(record.created_at).toLocaleDateString()}</td>
                     <td className="p-4 text-right">
-                      <button onClick={() => handleDelete(record.id)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all" title="Delete Log">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      {user?.role === 'admin' && (
+                        <button onClick={() => handleDelete(record.id)} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all" title="Delete Log">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -3042,9 +3046,11 @@ function HistoryLog() {
                     <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
                       record.status === 'shared' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20'
                     }`}>{record.status}</span>
-                    <button onClick={() => handleDelete(record.id)} className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all" title="Delete">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    {user?.role === 'admin' && (
+                      <button onClick={() => handleDelete(record.id)} className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all" title="Delete">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2 text-[11px]">
