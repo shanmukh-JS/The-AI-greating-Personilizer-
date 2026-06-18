@@ -136,14 +136,18 @@ export function AuthProvider({ children }) {
 
       if (isValidAgent || isValidAdmin || isValidNiatAurora) {
         console.warn("API Login failed, but matching simulated credentials found. Triggering fallback.");
-        const dummyToken = `simulated_jwt_token_${username}`;
+        let baseRoleForToken = 'agent';
+        if (isValidAdmin) baseRoleForToken = 'admin';
+        else if (isValidNiatAurora) baseRoleForToken = 'NIAT x AURORA';
+        
+        const dummyToken = `simulated_jwt_token_${baseRoleForToken}`;
         const dummyUser = {
           id: isValidAdmin ? 'b3014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
               isValidNiatAurora ? 'a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f' :
               'd2903b4b-48ab-46cb-8b8f-c20d8c4a0a0f',
           username,
           role: (isValidAdmin || isValidNiatAurora) ? 'admin' : 'staff',
-          email: localStorage.getItem('profile_email_' + username) || (username === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${username}@manivthatravels.com`),
+          email: localStorage.getItem('profile_email_' + username) || (baseRoleForToken === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${baseRoleForToken}@manivthatravels.com`),
           profile_image: localStorage.getItem('profile_image_' + username),
           location: localStorage.getItem('profile_location_' + username),
           phone: localStorage.getItem('profile_phone_' + username)
