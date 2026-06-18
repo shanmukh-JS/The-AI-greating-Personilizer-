@@ -3747,11 +3747,6 @@ function UserProfile() {
                       {fullName.length >= 3 ? '✓ Valid full name pattern detected.' : '✗ Name must be at least 3 characters.'}
                     </div>
                   )}
-                  {isEditing && fullName.length > 0 && (
-                    <div className={`mt-1.5 text-xs font-semibold ${fullName.length >= 3 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                      {fullName.length >= 3 ? '✓ Valid full name pattern detected.' : '✗ Name must be at least 3 characters.'}
-                    </div>
-                  )}
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Username</label>
@@ -3801,11 +3796,6 @@ function UserProfile() {
                       {location.length >= 3 ? '✓ Valid location format detected.' : '✗ Location should be at least 3 characters.'}
                     </div>
                   )}
-                  {isEditing && location.length > 0 && (
-                    <div className={`mt-1.5 text-xs font-semibold ${location.length >= 3 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                      {location.length >= 3 ? '✓ Valid location format detected.' : '✗ Location should be at least 3 characters.'}
-                    </div>
-                  )}
                 </div>
                 
                 <div>
@@ -3847,13 +3837,18 @@ function UserProfile() {
 
             <form onSubmit={handlePasswordChange} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="relative">
+                <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Current Password</label>
-                  <input 
-                    type={showPassword ? 'text' : 'password'} 
-                    value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} 
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 transition-colors pr-10" 
-                  />
+                  <div className="relative">
+                    <input 
+                      type={showPassword ? 'text' : 'password'} 
+                      value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} 
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 transition-colors pr-10" 
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600">
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   {currentPassword.length > 0 && (() => {
                     const custom = localStorage.getItem('custom_password_' + user?.username) || 'password123';
                     const isNiatAurora = user?.username === 'NIAT x AURORA';
@@ -3864,9 +3859,6 @@ function UserProfile() {
                       </div>
                     );
                   })()}
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute bottom-3 right-3 text-slate-400 hover:text-slate-600">
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
                 </div>
                 <div className="hidden md:block"></div>
                 
