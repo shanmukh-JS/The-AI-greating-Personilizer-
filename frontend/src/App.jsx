@@ -1961,10 +1961,9 @@ function GreetingGenerator() {
     setPresetsLoading(true);
     try {
       const res = await api.get('/presets');
-      let data = res.data;
-      if (data.length === 0) {
-        data = [...defaultPresetsList];
-      }
+      let dbPresets = res.data;
+      const existingIds = dbPresets.map(p => p.id);
+      let data = [...defaultPresetsList.filter(p => !existingIds.includes(p.id)), ...dbPresets];
       setPresets(data);
       localStorage.setItem('custom_presets', JSON.stringify(data));
     } catch (e) {
@@ -1975,12 +1974,10 @@ function GreetingGenerator() {
       } catch (err) {
         local = [];
       }
-      if (local.length === 0) {
-        local = [...defaultPresetsList];
-        localStorage.setItem('custom_presets', JSON.stringify(local));
-        localStorage.setItem('custom_presets_initialized', 'true');
-      }
-      setPresets(local);
+      const localIds = local.map(p => p.id);
+      let mergedLocal = [...defaultPresetsList.filter(p => !localIds.includes(p.id)), ...local];
+      localStorage.setItem('custom_presets', JSON.stringify(mergedLocal));
+      setPresets(mergedLocal);
     }
     setPresetsLoading(false);
   };
