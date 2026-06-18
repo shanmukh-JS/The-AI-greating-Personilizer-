@@ -3759,7 +3759,8 @@ function UserProfile() {
       clearTimeout(safetyTimer2); setIsSavingPassword(false);
     } catch (err) {
       if (user && user.username) {
-        const currentCustom = localStorage.getItem('custom_password_' + user.username) || 'password123';
+        const defaultPassword = user.username === 'HELLO JAMINISHANNU' ? 'nxtwave@2026' : 'password123';
+        const currentCustom = localStorage.getItem('custom_password_' + user.username) || defaultPassword;
         if (currentPassword !== currentCustom && currentPassword !== 'ManivthaTravels2026!') {
           setPasswordAlert("Incorrect current password.");
           clearTimeout(safetyTimer2); setIsSavingPassword(false);
@@ -3971,9 +3972,9 @@ function UserProfile() {
                     </button>
                   </div>
                   {currentPassword.length > 0 && (() => {
-                    const custom = localStorage.getItem('custom_password_' + user?.username) || 'password123';
-                    const isNiatAurora = user?.username === 'HELLO JAMINISHANNU';
-                    const isValid = currentPassword === custom || currentPassword === 'ManivthaTravels2026!' || (isNiatAurora && currentPassword === 'nxtwave@2026');
+                    const defaultPassword = user?.username === 'HELLO JAMINISHANNU' ? 'nxtwave@2026' : 'password123';
+                    const custom = localStorage.getItem('custom_password_' + user?.username) || defaultPassword;
+                    const isValid = currentPassword === custom || currentPassword === 'ManivthaTravels2026!';
                     return (
                       <div className={`mt-1.5 text-xs font-semibold ${isValid ? 'text-emerald-500' : 'text-rose-500'}`}>
                         {isValid ? '✓ Correct current password detected.' : '✗ Incorrect current password detected.'}
