@@ -174,6 +174,21 @@ function LoadingSpinner() {
   );
 }
 
+function InnerLoader({ text = "Loading data..." }) {
+  return (
+    <div className="w-full py-24 flex flex-col items-center justify-center animate-fade-in">
+      <div className="relative">
+        <div className="h-16 w-16 rounded-full border-4 border-indigo-500/20"></div>
+        <div className="h-16 w-16 rounded-full border-4 border-transparent border-t-indigo-600 dark:border-t-indigo-400 animate-spin absolute top-0 left-0"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <Sparkles className="h-5 w-5 text-indigo-500 dark:text-indigo-400 animate-pulse" />
+        </div>
+      </div>
+      <p className="mt-6 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{text}</p>
+    </div>
+  );
+}
+
 function AlertWidget({ message, type = 'success', onClose }) {
   const bg = type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20';
   return (
@@ -1093,7 +1108,7 @@ function Dashboard() {
   };
 
 
-  if (loading) return <div className="text-center py-12 text-slate-505">Gathering database statistics...</div>;
+  if (loading) return <InnerLoader text="Gathering database statistics..." />;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -2677,7 +2692,7 @@ function GreetingGenerator() {
         </div>
 
         {historyLoading ? (
-          <div className="text-center py-8 text-slate-500 text-sm">Querying workspace database...</div>
+          <InnerLoader text="Querying workspace database..." />
         ) : historyList.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center text-slate-500">
             <History className="h-10 w-10 text-slate-700 mx-auto mb-3" />
@@ -2917,7 +2932,7 @@ function HistoryLog() {
       </div>
 
       {loading ? (
-        <p className="text-center py-6 text-slate-500">Querying database registry logs...</p>
+        <InnerLoader text="Querying database registry logs..." />
       ) : history.length === 0 ? (
         <div className="bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center text-slate-500">
           <History className="h-10 w-10 text-slate-700 mx-auto mb-3" />
@@ -3236,7 +3251,7 @@ function TemplatesManager() {
           {/* List Side */}
           <div className="lg:col-span-2 space-y-4">
             {loading ? (
-              <p className="text-slate-500">Querying template files...</p>
+              <InnerLoader text="Querying template files..." />
             ) : (
               <div className="grid grid-cols-1 gap-4">
                 {templates.map((t) => (
