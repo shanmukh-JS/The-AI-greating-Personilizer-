@@ -3571,10 +3571,12 @@ function UserProfile() {
       localStorage.setItem('profile_phone_' + newU, phone);
       localStorage.setItem('profile_email_' + newU, email);
       localStorage.setItem('custom_password_' + newU, localStorage.getItem('custom_password_' + oldU) || '');
-      
-      alert('Username changed successfully! Please log in again to access your updated account.');
-      localStorage.removeItem('token');
-      window.location.reload();
+      setAlert("Username changed successfully! Syncing credentials...");
+      setTimeout(() => {
+        setIsSavingProfile(false);
+        localStorage.removeItem('token');
+        window.location.reload();
+      }, 1500);
       return;
     }
     
