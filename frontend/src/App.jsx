@@ -254,7 +254,11 @@ function Layout({ children }) {
   useEffect(() => {
     const root = window.document.documentElement;
     theme === 'dark' ? root.classList.add('dark') : root.classList.remove('dark');
-    localStorage.setItem('theme', theme);
+      const cMode = localStorage.getItem('settings_compactMode') === 'true';
+      cMode ? root.classList.add('compact-mode') : root.classList.remove('compact-mode');
+      const anim = localStorage.getItem('settings_animations') !== 'false';
+      !anim ? root.classList.add('disable-animations') : root.classList.remove('disable-animations');
+      localStorage.setItem('theme', theme);
   }, [theme]);
 
   const toggleSidebar = () => {
@@ -3836,10 +3840,12 @@ function SettingsPage() {
     localStorage.setItem('settings_temperature', temperature);
     localStorage.setItem('settings_defaultLanguage', defaultLanguage);
     localStorage.setItem('theme', theme);
-    const root = window.document.documentElement;
-    theme === 'dark' ? root.classList.add('dark') : root.classList.remove('dark');
     localStorage.setItem('settings_compactMode', compactMode);
-    localStorage.setItem('settings_animations', animationsEnabled);
+      localStorage.setItem('settings_animations', animationsEnabled);
+      const root = window.document.documentElement;
+      theme === 'dark' ? root.classList.add('dark') : root.classList.remove('dark');
+      compactMode ? root.classList.add('compact-mode') : root.classList.remove('compact-mode');
+      !animationsEnabled ? root.classList.add('disable-animations') : root.classList.remove('disable-animations');
     localStorage.setItem('settings_notifyGenerate', notifyOnGenerate);
     localStorage.setItem('settings_notifyFeedback', notifyOnFeedback);
     localStorage.setItem('settings_autoSave', autoSaveForms);
