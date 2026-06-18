@@ -2069,7 +2069,15 @@ function GreetingGenerator() {
         travelDate,
         whatsappNumber
       });
-      setResultGreeting(res.data);
+      const generatedGreeting = res.data;
+      
+      const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+      if (!localGreetings.find(g => g.id === generatedGreeting.id)) {
+        localGreetings.push(generatedGreeting);
+        localStorage.setItem('local_greetings', JSON.stringify(localGreetings));
+      }
+      
+      setResultGreeting(generatedGreeting);
       loadGreetingsHistory();
     } catch (err) {
       console.warn("API Error, triggering simulated local output fallback");
