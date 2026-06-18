@@ -3516,6 +3516,7 @@ function UserProfile() {
   const [location, setLocation] = useState(user?.location || localStorage.getItem('profile_location') || '');
   const [profileImage, setProfileImage] = useState(user?.profile_image || '');
   const [timezone, setTimezone] = useState(() => localStorage.getItem('profile_timezone') || 'UTC');
+  const [usernameInput, setUsernameInput] = useState(user?.username || '');
   
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -3540,6 +3541,31 @@ function UserProfile() {
     }
     if (!phone.match(/^\d{10}$/)) {
       setAlert("Phone number must be exactly 10 digits.");
+      return;
+    }
+
+    if (usernameInput && usernameInput !== user.username) {
+      const oldU = user.username;
+      const newU = usernameInput;
+
+      let baseRole = '';
+      if (oldU === (localStorage.getItem('custom_username_agent') || 'agent')) baseRole = 'agent';
+      else if (oldU === (localStorage.getItem('custom_username_admin') || 'admin')) baseRole = 'admin';
+      else if (oldU === (localStorage.getItem('custom_username_NIAT x AURORA') || 'NIAT x AURORA')) baseRole = 'NIAT x AURORA';
+
+      if (baseRole) {
+          localStorage.setItem('custom_username_' + baseRole, newU);
+      }
+      
+      localStorage.setItem('profile_image_' + newU, localStorage.getItem('profile_image_' + oldU) || '');
+      localStorage.setItem('profile_location_' + newU, location);
+      localStorage.setItem('profile_phone_' + newU, phone);
+      localStorage.setItem('profile_email_' + newU, email);
+      localStorage.setItem('custom_password_' + newU, localStorage.getItem('custom_password_' + oldU) || '');
+      
+      alert('Username changed successfully! Please log in again to access your updated account.');
+      localStorage.removeItem('token');
+      window.location.reload();
       return;
     }
     
