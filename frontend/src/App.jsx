@@ -51,10 +51,11 @@ export function AuthProvider({ children }) {
                 'd2903b4b-48ab-46cb-8b8f-c20d8c4a0a0f',
             username,
             role: (username === 'admin' || username === 'NIAT x AURORA') ? 'admin' : 'staff',
-            email: username === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${username}@manivthatravels.com`,
-              profile_image: localStorage.getItem('profile_image'),
-              location: localStorage.getItem('profile_location')
-            };
+            email: localStorage.getItem('profile_email_' + username) || localStorage.getItem('profile_email') || (username === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${username}@manivthatravels.com`),
+            profile_image: localStorage.getItem('profile_image_' + username) || localStorage.getItem('profile_image'),
+            location: localStorage.getItem('profile_location_' + username) || localStorage.getItem('profile_location'),
+            phone: localStorage.getItem('profile_phone_' + username) || localStorage.getItem('profile_phone')
+          };
           setUser(dummyUser);
           setLoading(false);
           return;
@@ -63,7 +64,15 @@ export function AuthProvider({ children }) {
         try {
           // Attempt profile request to verify JWT validity
           const res = await api.get('/profile');
-          setUser(res.data);
+          const apiUser = res.data;
+          const uName = apiUser.username;
+          if (uName) {
+            apiUser.profile_image = localStorage.getItem('profile_image_' + uName) || apiUser.profile_image || localStorage.getItem('profile_image');
+            apiUser.location = localStorage.getItem('profile_location_' + uName) || apiUser.location || localStorage.getItem('profile_location');
+            apiUser.phone = localStorage.getItem('profile_phone_' + uName) || apiUser.phone || localStorage.getItem('profile_phone');
+            apiUser.email = localStorage.getItem('profile_email_' + uName) || apiUser.email || localStorage.getItem('profile_email');
+          }
+          setUser(apiUser);
         } catch (e) {
           if (e.response && (e.response.status === 401 || e.response.status === 403)) {
             console.warn("Session expired, cleaning storage token");
@@ -76,7 +85,15 @@ export function AuthProvider({ children }) {
               const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
                 return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
               }).join(''));
-              setUser(JSON.parse(jsonPayload));
+              const decoded = JSON.parse(jsonPayload);
+              const uName = decoded.username;
+              if (uName) {
+                decoded.profile_image = localStorage.getItem('profile_image_' + uName) || decoded.profile_image || localStorage.getItem('profile_image');
+                decoded.location = localStorage.getItem('profile_location_' + uName) || decoded.location || localStorage.getItem('profile_location');
+                decoded.phone = localStorage.getItem('profile_phone_' + uName) || decoded.phone || localStorage.getItem('profile_phone');
+                decoded.email = localStorage.getItem('profile_email_' + uName) || decoded.email || localStorage.getItem('profile_email');
+              }
+              setUser(decoded);
             } catch (err) {
               console.error("Failed to parse JWT payload offline", err);
               logout();
@@ -94,7 +111,14 @@ export function AuthProvider({ children }) {
       const res = await api.post('/auth/login', { username, password });
       localStorage.setItem('token', res.data.token);
       setToken(res.data.token);
-      setUser(res.data.user);
+      const loggedUser = res.data.user;
+      if (username) {
+        loggedUser.profile_image = localStorage.getItem('profile_image_' + username) || loggedUser.profile_image || localStorage.getItem('profile_image');
+        loggedUser.location = localStorage.getItem('profile_location_' + username) || loggedUser.location || localStorage.getItem('profile_location');
+        loggedUser.phone = localStorage.getItem('profile_phone_' + username) || loggedUser.phone || localStorage.getItem('profile_phone');
+        loggedUser.email = localStorage.getItem('profile_email_' + username) || loggedUser.email || localStorage.getItem('profile_email');
+      }
+      setUser(loggedUser);
       return { success: true };
     } catch (err) {
       if (err.response) {
@@ -122,7 +146,10 @@ export function AuthProvider({ children }) {
               'd2903b4b-48ab-46cb-8b8f-c20d8c4a0a0f',
           username,
           role: (isValidAdmin || isValidNiatAurora) ? 'admin' : 'staff',
-          email: username === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${username}@manivthatravels.com`
+          email: localStorage.getItem('profile_email_' + username) || localStorage.getItem('profile_email') || (username === 'NIAT x AURORA' ? 'niatxaurora@manivthatravels.com' : `${username}@manivthatravels.com`),
+          profile_image: localStorage.getItem('profile_image_' + username) || localStorage.getItem('profile_image'),
+          location: localStorage.getItem('profile_location_' + username) || localStorage.getItem('profile_location'),
+          phone: localStorage.getItem('profile_phone_' + username) || localStorage.getItem('profile_phone')
         };
         localStorage.setItem('token', dummyToken);
         setToken(dummyToken);
@@ -654,17 +681,32 @@ function LoginPage() {
           </div>
           
           <div className="grid grid-cols-2 gap-3 mt-4">
-            <button type="button" onClick={() => handleQuickDemo('agent', 'password123')} className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
+            <button type="button" onClick={() => handleQuickDemo('agent', localStorage.getItem('custom_password_agent') || 'password123')} className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
+              {localStorage.getItem('profile_image_agent') || localStorage.getItem('profile_image') ? (
+                <img src={localStorage.getItem('profile_image_agent') || localStorage.getItem('profile_image')} alt="Agent" className="w-8 h-8 rounded-full mb-2 object-cover border border-[#759AF1]/50" />
+              ) : (
+                <div className="w-8 h-8 rounded-full mb-2 bg-[#759AF1]/20 border border-[#759AF1]/50 flex items-center justify-center text-[#759AF1] font-bold">A</div>
+              )}
               <span className="text-[11px] font-extrabold text-[#759AF1] tracking-wider uppercase mb-1">Agent</span>
-              <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors">agent / password123</span>
+              <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors">agent / {localStorage.getItem('custom_password_agent') ? '******' : 'password123'}</span>
             </button>
-            <button type="button" onClick={() => handleQuickDemo('admin', 'password123')} className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
+            <button type="button" onClick={() => handleQuickDemo('admin', localStorage.getItem('custom_password_admin') || 'password123')} className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
+              {localStorage.getItem('profile_image_admin') ? (
+                <img src={localStorage.getItem('profile_image_admin')} alt="Admin" className="w-8 h-8 rounded-full mb-2 object-cover border border-[#759AF1]/50" />
+              ) : (
+                <div className="w-8 h-8 rounded-full mb-2 bg-[#759AF1]/20 border border-[#759AF1]/50 flex items-center justify-center text-[#759AF1] font-bold">A</div>
+              )}
               <span className="text-[11px] font-extrabold text-[#759AF1] tracking-wider uppercase mb-1">Admin</span>
-              <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors">admin / password123</span>
+              <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors">admin / {localStorage.getItem('custom_password_admin') ? '******' : 'password123'}</span>
             </button>
-            <button type="button" onClick={() => handleQuickDemo('NIAT x AURORA', 'nxtwave@2026')} className="col-span-2 flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
+            <button type="button" onClick={() => handleQuickDemo('NIAT x AURORA', localStorage.getItem('custom_password_NIAT x AURORA') || 'nxtwave@2026')} className="col-span-2 flex flex-col items-center justify-center p-3 rounded-xl border border-slate-700/40 bg-slate-800/20 hover:bg-slate-800/50 hover:border-slate-600 transition-all group">
+              {localStorage.getItem('profile_image_NIAT x AURORA') ? (
+                <img src={localStorage.getItem('profile_image_NIAT x AURORA')} alt="Master Admin" className="w-8 h-8 rounded-full mb-2 object-cover border border-[#14B8E6]/50" />
+              ) : (
+                <div className="w-8 h-8 rounded-full mb-2 bg-[#14B8E6]/20 border border-[#14B8E6]/50 flex items-center justify-center text-[#14B8E6] font-bold">N</div>
+              )}
               <span className="text-[11px] font-extrabold text-[#14B8E6] tracking-wider uppercase mb-1">Master Admin</span>
-              <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors">NIAT x AURORA / nxtwave@2026</span>
+              <span className="text-[11px] text-slate-400 font-mono group-hover:text-slate-300 transition-colors">NIAT x AURORA / {localStorage.getItem('custom_password_NIAT x AURORA') ? '******' : 'nxtwave@2026'}</span>
             </button>
           </div>
         </div>
@@ -3475,7 +3517,7 @@ function UserProfile() {
     return () => clearTimeout(t);
   }, []);
 
-  const handleUpdate = async (e) => {
+    const handleUpdate = async (e) => {
     e.preventDefault();
     if (!email.match(/@g\.?mail\.com$/i)) {
       setAlert("Email must be a @gmail.com address.");
@@ -3486,23 +3528,61 @@ function UserProfile() {
       return;
     }
     
+    const uName = user?.username || '';
     try {
       const res = await api.put('/profile', { email, phone, location, profile_image: profileImage });
-      setUser(res.data.user);
+      const updatedUser = res.data.user;
       
-      // Save local fields
+      if (uName) {
+        localStorage.setItem('profile_fullName_' + uName, fullName);
+        localStorage.setItem('profile_email_' + uName, email);
+        localStorage.setItem('profile_phone_' + uName, phone);
+        localStorage.setItem('profile_location_' + uName, location);
+        localStorage.setItem('profile_timezone_' + uName, timezone);
+        localStorage.setItem('profile_image_' + uName, profileImage);
+      }
       localStorage.setItem('profile_fullName', fullName);
+      localStorage.setItem('profile_email', email);
       localStorage.setItem('profile_phone', phone);
       localStorage.setItem('profile_location', location);
       localStorage.setItem('profile_timezone', timezone);
+      localStorage.setItem('profile_image', profileImage);
+
+      setUser({
+        ...user,
+        email,
+        phone,
+        location,
+        profile_image: profileImage,
+        ...updatedUser
+      });
 
       setAlert("Profile parameters updated!");
       setIsEditing(false);
     } catch (err) {
+      if (uName) {
+        localStorage.setItem('profile_fullName_' + uName, fullName);
+        localStorage.setItem('profile_email_' + uName, email);
+        localStorage.setItem('profile_phone_' + uName, phone);
+        localStorage.setItem('profile_location_' + uName, location);
+        localStorage.setItem('profile_timezone_' + uName, timezone);
+        localStorage.setItem('profile_image_' + uName, profileImage);
+      }
       localStorage.setItem('profile_fullName', fullName);
+      localStorage.setItem('profile_email', email);
       localStorage.setItem('profile_phone', phone);
       localStorage.setItem('profile_location', location);
       localStorage.setItem('profile_timezone', timezone);
+      localStorage.setItem('profile_image', profileImage);
+
+      setUser({
+        ...user,
+        email,
+        phone,
+        location,
+        profile_image: profileImage
+      });
+
       setAlert("Profile saved locally (Offline)!");
       setIsEditing(false);
     }
@@ -3662,6 +3742,16 @@ function UserProfile() {
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
                   <input type="text" disabled={!isEditing} value={fullName} onChange={e => setFullName(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" />
+                  {isEditing && fullName.length > 0 && (
+                    <div className={`mt-1.5 text-xs font-semibold ${fullName.length >= 3 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {fullName.length >= 3 ? '✓ Valid full name pattern detected.' : '✗ Name must be at least 3 characters.'}
+                    </div>
+                  )}
+                  {isEditing && fullName.length > 0 && (
+                    <div className={`mt-1.5 text-xs font-semibold ${fullName.length >= 3 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {fullName.length >= 3 ? '✓ Valid full name pattern detected.' : '✗ Name must be at least 3 characters.'}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Username</label>
@@ -3670,10 +3760,30 @@ function UserProfile() {
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
                   <input type="email" disabled={!isEditing} required value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" />
+                  {isEditing && email.length > 0 && (
+                    <div className={`mt-1.5 text-xs font-semibold ${email.match(/@g\.?mail\.com$/i) ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {email.match(/@g\.?mail\.com$/i) ? '✓ Valid @gmail.com address detected.' : '✗ Email must be a @gmail.com address.'}
+                    </div>
+                  )}
+                  {isEditing && email.length > 0 && (
+                    <div className={`mt-1.5 text-xs font-semibold ${email.match(/@g\.?mail\.com$/i) ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {email.match(/@g\.?mail\.com$/i) ? '✓ Valid @gmail.com address detected.' : '✗ Email must be a @gmail.com address.'}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Phone Number</label>
                   <input type="tel" disabled={!isEditing} value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" />
+                  {isEditing && phone.length > 0 && (
+                    <div className={`mt-1.5 text-xs font-semibold ${phone.match(/^\d{10}$/) ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {phone.match(/^\d{10}$/) ? '✓ Valid 10-digit phone number detected.' : '✗ Phone number must be exactly 10 digits.'}
+                    </div>
+                  )}
+                  {isEditing && phone.length > 0 && (
+                    <div className={`mt-1.5 text-xs font-semibold ${phone.match(/^\d{10}$/) ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {phone.match(/^\d{10}$/) ? '✓ Valid 10-digit phone number detected.' : '✗ Phone number must be exactly 10 digits.'}
+                    </div>
+                  )}
                 </div>
                 
                 <div>
@@ -3686,6 +3796,16 @@ function UserProfile() {
                     )}
                   </div>
                   <input type="text" disabled={!isEditing} value={location} onChange={e => setLocation(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" placeholder="e.g. New York, USA" />
+                  {isEditing && location.length > 0 && (
+                    <div className={`mt-1.5 text-xs font-semibold ${location.length >= 3 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {location.length >= 3 ? '✓ Valid location format detected.' : '✗ Location should be at least 3 characters.'}
+                    </div>
+                  )}
+                  {isEditing && location.length > 0 && (
+                    <div className={`mt-1.5 text-xs font-semibold ${location.length >= 3 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {location.length >= 3 ? '✓ Valid location format detected.' : '✗ Location should be at least 3 characters.'}
+                    </div>
+                  )}
                 </div>
                 
                 <div>
@@ -3734,6 +3854,16 @@ function UserProfile() {
                     value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} 
                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 transition-colors pr-10" 
                   />
+                  {currentPassword.length > 0 && (() => {
+                    const custom = localStorage.getItem('custom_password_' + user?.username) || 'password123';
+                    const isNiatAurora = user?.username === 'NIAT x AURORA';
+                    const isValid = currentPassword === custom || currentPassword === 'ManivthaTravels2026!' || (isNiatAurora && currentPassword === 'nxtwave@2026');
+                    return (
+                      <div className={`mt-1.5 text-xs font-semibold ${isValid ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {isValid ? '✓ Correct current password detected.' : '✗ Incorrect current password detected.'}
+                      </div>
+                    );
+                  })()}
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute bottom-3 right-3 text-slate-400 hover:text-slate-600">
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -3747,6 +3877,11 @@ function UserProfile() {
                     value={newPassword} onChange={e => setNewPassword(e.target.value)} 
                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 transition-colors pr-10" 
                   />
+                  {newPassword.length > 0 && (
+                    <div className={`mt-1.5 text-xs font-semibold ${newPassword.length >= 8 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {newPassword.length >= 8 ? '✓ Password meets minimum length requirements.' : '✗ Password must be at least 8 characters long.'}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="relative">
@@ -3756,6 +3891,11 @@ function UserProfile() {
                     value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} 
                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 transition-colors pr-10" 
                   />
+                  {confirmPassword.length > 0 && (
+                    <div className={`mt-1.5 text-xs font-semibold ${confirmPassword === newPassword ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {confirmPassword === newPassword ? '✓ Passwords match successfully.' : '✗ Passwords do not match.'}
+                    </div>
+                  )}
                 </div>
               </div>
 
