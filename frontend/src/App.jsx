@@ -4280,28 +4280,7 @@ function SettingsPage() {
             </div>
           </div>
 
-          <div>
-            <label className={labelCls}>Google Gemini API Key</label>
-            <div className="relative">
-              <input
-                type={showKey ? 'text' : 'password'}
-                value={apiKey}
-                onChange={e => setApiKey(e.target.value)}
-                placeholder="Enter your Gemini API key (optional override)"
-                className={`${inputCls} pr-24 font-mono`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowKey(!showKey)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-indigo-500 font-semibold hover:text-indigo-400 transition-colors"
-              >
-                {showKey ? 'Hide' : 'Reveal'}
-              </button>
-            </div>
-            <p className="text-xs text-slate-500 mt-1.5">
-              Overrides the backend environment key. If left blank, the server's configured key is used.
-            </p>
-          </div>
+
         </div>
 
         {/* ── 2. APPEARANCE ── */}
