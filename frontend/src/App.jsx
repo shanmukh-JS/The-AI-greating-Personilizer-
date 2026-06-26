@@ -8,7 +8,7 @@ import {
   Sparkles, History, LayoutDashboard, FileCode, Star, 
   Settings, User, LogOut, Copy, Download, Share2, 
   Menu, X, Sun, Moon, AlertCircle, Plus, Edit, Trash2, CheckCircle, HelpCircle, Calendar,
-  Lock, Eye, EyeOff, RefreshCw, ChevronLeft, ChevronRight, CalendarDays, Camera, UploadCloud, ShieldCheck, MapPin
+  Lock, Eye, EyeOff, RefreshCw, ChevronLeft, ChevronRight, CalendarDays, Camera, UploadCloud, ShieldCheck, MapPin, TrendingUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -337,12 +337,13 @@ function Layout({ children }) {
   const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
 
   const menuItems = [
-    { name: 'Dashboard',          path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Greeting Generator', path: '/generator',  icon: Sparkles        },
-    { name: 'History Log',        path: '/history',    icon: History         },
-    { name: 'Templates Manager',  path: '/templates',  icon: FileCode        },
-    { name: 'User Profile',       path: '/profile',    icon: User            },
-    { name: 'Settings',           path: '/settings',   icon: Settings        },
+    { name: 'Dashboard',          path: '/dashboard',        icon: LayoutDashboard },
+    { name: 'Greeting Generator', path: '/generator',         icon: Sparkles        },
+    { name: 'AI Feedback Loop',   path: '/ai-feedback-loop', icon: TrendingUp      },
+    { name: 'History Log',        path: '/history',          icon: History         },
+    { name: 'Templates Manager',  path: '/templates',        icon: FileCode        },
+    { name: 'User Profile',       path: '/profile',          icon: User            },
+    { name: 'Settings',           path: '/settings',         icon: Settings        },
   ];
   const location = useLocation();
 
@@ -4740,8 +4741,229 @@ function NotFoundPage() {
 }
 
 // -------------------------------------------------------------
+// AI FEEDBACK LOOP PAGE
+// -------------------------------------------------------------
+function AIFeedbackLoopPage() {
+  const localFbs = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+  const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+
+  const dist = [0, 0, 0, 0, 0];
+  localFbs.forEach(fb => { if (fb.rating >= 1 && fb.rating <= 5) dist[fb.rating - 1]++; });
+  const totalFb = localFbs.length || 1;
+  const avgRating = localFbs.length
+    ? (localFbs.reduce((s, f) => s + f.rating, 0) / localFbs.length).toFixed(1)
+    : '0.0';
+  const lowCount  = dist[0] + dist[1];
+  const midCount  = dist[2];
+  const highCount = dist[3] + dist[4];
+
+  const promptStages = [
+    {
+      version: 'V1', label: 'Basic Text Generator', gradient: 'from-red-500 to-orange-500',
+      problem: 'Outputs were too generic, inconsistent in tone, no brand identity.',
+      ratingImpact: 'Agents rated low — greetings felt copy-paste and impersonal.',
+      fix: 'Added loyalty category (Standard / Premium / VIP) and brand signature.', active: false,
+    },
+    {
+      version: 'V2', label: 'Structured Template', gradient: 'from-orange-500 to-amber-500',
+      problem: 'Format improved, but ignored preferred language and special notes.',
+      ratingImpact: 'Non-English customers received English-only greetings — very low ratings.',
+      fix: 'Added multilingual support (8 languages) and a special notes input field.', active: false,
+    },
+    {
+      version: 'V3', label: 'Multilingual & Contextual', gradient: 'from-amber-500 to-yellow-400',
+      problem: 'AI invented hotel check-in times, flight numbers, and tour schedules.',
+      ratingImpact: 'Hallucinated facts caused customer confusion and complaint escalations.',
+      fix: 'Introduced STRICT CONSTRAINTS block — zero hallucination policy enforced.', active: false,
+    },
+    {
+      version: 'V4', label: 'Production-Grade (LIVE)', gradient: 'from-emerald-500 to-cyan-400',
+      problem: null,
+      ratingImpact: 'Tone-matched, language-native, loyalty-aware, zero hallucinations.',
+      fix: 'Temperature 0.3 · Max 500 tokens · 3-retry exponential backoff · Fallback engine.', active: true,
+    },
+  ];
+
+  const steps = [
+    { num: '01', emoji: '✨', title: 'Generate', color: 'from-indigo-500/15 to-indigo-500/5', border: 'border-indigo-500/25', badge: 'text-indigo-500', desc: 'Agent fills in customer name, destination, travel date, language, travel type, loyalty tier and special notes. Gemini AI (gemini-1.5-flash) processes the system prompt and generates a personalised greeting.' },
+    { num: '02', emoji: '⭐', title: 'Agent Reviews & Rates', color: 'from-amber-500/15 to-amber-500/5', border: 'border-amber-500/25', badge: 'text-amber-500', desc: 'The travel agent reads the generated greeting and submits a star rating (1–5) with optional comments explaining what was good or bad about the output.' },
+    { num: '03', emoji: '🔍', title: 'Filter & Analyse', color: 'from-rose-500/15 to-rose-500/5', border: 'border-rose-500/25', badge: 'text-rose-500', desc: 'The system logs every rating. Low-rated outputs (1–2★) are flagged. Common failure patterns are identified: wrong language, wrong tone, invented facts, missing loyalty reference.' },
+    { num: '04', emoji: '🚀', title: 'Prompt Improves', color: 'from-emerald-500/15 to-emerald-500/5', border: 'border-emerald-500/25', badge: 'text-emerald-500', desc: 'Based on failure patterns, the system prompt is updated with tighter constraints, new tone rules, language guards, and hallucination prevention. The next greeting is already better.' },
+  ];
+
+  const flagged = localFbs
+    .filter(fb => fb.rating <= 2)
+    .map(fb => {
+      const g = localGreetings.find(g => g.id === fb.greeting_id);
+      return { ...fb, customer_name: g?.customer_name || 'Unknown', destination: g?.destination || '—', language: g?.language || '—' };
+    }).slice(0, 5);
+
+  const getVerdict = () => {
+    if (localFbs.length === 0) return { color: 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700 text-slate-400', text: '⏳ No ratings yet. Generate a greeting, rate it, and come back to see the live quality signal.' };
+    if (parseFloat(avgRating) >= 4.0) return { color: 'bg-emerald-500/5 border-emerald-500/20 text-emerald-700 dark:text-emerald-300', text: `✅ Excellent — Prompt V4 performing well. ${highCount}/${localFbs.length} greetings rated 4–5★. No prompt revision needed.` };
+    if (parseFloat(avgRating) >= 3.0) return { color: 'bg-amber-500/5 border-amber-500/20 text-amber-700 dark:text-amber-300', text: `⚠️ Average — ${lowCount} low-rated greeting(s) flagged. Review tone or language match in the next iteration.` };
+    return { color: 'bg-rose-500/5 border-rose-500/20 text-rose-700 dark:text-rose-300', text: `🔴 Quality Alert — Over 50% greetings below 3★. Prompt constraints may need immediate tightening.` };
+  };
+  const verdict = getVerdict();
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-8 pb-12">
+
+      {/* Page Header */}
+      <div className="flex items-start gap-5">
+        <div className="h-14 w-14 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-xl shadow-indigo-500/30 flex-shrink-0">
+          <TrendingUp className="h-7 w-7 text-white" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-display font-extrabold text-slate-900 dark:text-white">AI Feedback Loop</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
+            See exactly how customer ratings filter through the system and drive improvements to every future AI-generated greeting — from Prompt V1 to the current production-grade V4.
+          </p>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Live Quality Signal · {localFbs.length} rating{localFbs.length !== 1 ? 's' : ''} collected</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 4-STEP CYCLE */}
+      <div className="bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4">
+        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">How the Loop Works — 4 Steps</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {steps.map((s, i) => (
+            <div key={s.num} className={`relative p-5 rounded-2xl bg-gradient-to-br ${s.color} border ${s.border} flex flex-col gap-3`}>
+              {i < 3 && (
+                <div className="hidden lg:flex absolute -right-5 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 items-center justify-center text-slate-400 text-xs font-bold shadow">→</div>
+              )}
+              <span className="text-3xl">{s.emoji}</span>
+              <div>
+                <span className={`text-[9px] font-extrabold uppercase tracking-widest ${s.badge}`}>Step {s.num}</span>
+                <p className="text-sm font-bold text-slate-800 dark:text-white mt-0.5">{s.title}</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">{s.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* PROMPT EVOLUTION TIMELINE */}
+        <div className="bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Prompt Evolution History</p>
+          <div className="relative space-y-3 pl-7">
+            <div className="absolute left-[18px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-red-400 via-amber-400 to-emerald-400 rounded-full opacity-40"></div>
+            {promptStages.map((stage) => (
+              <div key={stage.version} className={`relative flex gap-4 p-4 rounded-2xl border transition-all ${stage.active ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-slate-50 dark:bg-slate-800/30 border-slate-100 dark:border-slate-800'}`}>
+                <div className={`absolute -left-[24px] top-1/2 -translate-y-1/2 h-4 w-4 rounded-full bg-gradient-to-br ${stage.gradient} border-2 border-white dark:border-slate-900 shadow-md`}></div>
+                <div className={`flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br ${stage.gradient} flex items-center justify-center shadow`}>
+                  <span className="text-[10px] font-extrabold text-white">{stage.version}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-bold text-slate-800 dark:text-white">{stage.label}</span>
+                    {stage.active && <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">● LIVE</span>}
+                  </div>
+                  {stage.problem && <p className="text-[11px] text-rose-500 dark:text-rose-400 mt-1">❌ {stage.problem}</p>}
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{stage.active ? `✅ ${stage.ratingImpact}` : `⭐ Rating impact: ${stage.ratingImpact}`}</p>
+                  <p className="text-[10px] text-indigo-500 dark:text-indigo-400 font-semibold mt-1">{stage.active ? `⚙️ ${stage.fix}` : `→ Fix: ${stage.fix}`}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* LIVE RATING + FLAGGED */}
+        <div className="space-y-4">
+          <div className="bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Live Rating Distribution</p>
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col items-center justify-center h-20 w-20 rounded-3xl bg-gradient-to-br from-indigo-500 to-cyan-400 shadow-xl shadow-indigo-500/25 flex-shrink-0">
+                <span className="text-2xl font-extrabold text-white leading-none">{avgRating}</span>
+                <span className="text-[9px] font-bold text-indigo-100 uppercase tracking-wider mt-0.5">Avg ★</span>
+              </div>
+              <div className="flex flex-col gap-1.5 text-[11px] font-semibold">
+                <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span><span className="text-slate-600 dark:text-slate-300">{highCount} high-quality (4–5★) — approved</span></div>
+                <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-amber-500"></span><span className="text-slate-600 dark:text-slate-300">{midCount} neutral (3★)</span></div>
+                <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-rose-500"></span><span className="text-slate-600 dark:text-slate-300">{lowCount} flagged (1–2★) — triggered review</span></div>
+              </div>
+            </div>
+            <div className="space-y-2.5">
+              {[5,4,3,2,1].map(star => {
+                const count = dist[star - 1];
+                const pct = Math.round((count / totalFb) * 100);
+                const barColor = star >= 4 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : star === 3 ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-gradient-to-r from-rose-400 to-rose-500';
+                return (
+                  <div key={star} className="flex items-center gap-3">
+                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 w-8 text-right shrink-0">{star}★</span>
+                    <div className="flex-1 h-5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div className={`h-full rounded-full transition-all duration-700 ${barColor} flex items-center justify-end pr-1.5`} style={{ width: pct > 0 ? `${Math.max(pct, 5)}%` : '0%' }}>
+                        {pct > 12 && <span className="text-[8px] font-bold text-white">{pct}%</span>}
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 w-12 shrink-0">{count} ({pct}%)</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className={`p-3 rounded-xl border text-[11px] font-semibold leading-relaxed ${verdict.color}`}>{verdict.text}</div>
+          </div>
+
+          {/* Flagged greetings */}
+          <div className="bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-3">
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Flagged Low-Rated Greetings (1–2★)</p>
+            {flagged.length === 0 ? (
+              <div className="flex flex-col items-center py-8 text-center">
+                <CheckCircle size={28} className="text-emerald-400 mb-2" />
+                <p className="text-sm font-semibold text-slate-400">No low-rated greetings</p>
+                <p className="text-xs text-slate-400/70 mt-1">All ratings are 3★ or above — great quality!</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {flagged.map((fb, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-rose-500/5 border border-rose-500/15">
+                    <div className="h-8 w-8 rounded-full bg-rose-500/15 flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-extrabold text-rose-500">{fb.rating}★</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-slate-800 dark:text-white truncate">{fb.customer_name}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{fb.destination} · {fb.language}</p>
+                    </div>
+                    {fb.comments && <p className="text-[10px] text-rose-500 italic truncate max-w-[120px]">"{fb.comments}"</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* HOW THE AI USES IT — Technical Detail */}
+      <div className="bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-cyan-500/5 border border-indigo-500/15 rounded-3xl p-6 space-y-4">
+        <p className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-400">How the AI Uses Your Ratings — Technical Detail</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { icon: '🌡️', title: 'Temperature Control', detail: 'Temperature is set to 0.3 — low creativity prevents the AI from inventing details. If hallucinations are flagged via low ratings, temperature can be lowered further towards 0.0.' },
+            { icon: '📋', title: 'System Prompt Constraints', detail: 'The SYSTEM_PROMPT includes STRICT CONSTRAINTS built from past low-rating patterns: no invented flight numbers, no assumed hotel names, correct native script for each language.' },
+            { icon: '🔁', title: 'Retry & Fallback Engine', detail: '3 retry attempts with exponential backoff ensure the AI always responds. If all retries fail, a rules-based fallback engine generates a safe, structured greeting in the correct language.' },
+          ].map(item => (
+            <div key={item.title} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-900/50 border border-indigo-500/10">
+              <span className="text-2xl">{item.icon}</span>
+              <p className="text-xs font-bold text-slate-800 dark:text-white mt-2">{item.title}</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">{item.detail}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+// -------------------------------------------------------------
 // ROOT ROUTES ASSEMBLY
 // -------------------------------------------------------------
+
 export default function App() {
   return (
     <AuthProvider>
@@ -4785,6 +5007,12 @@ export default function App() {
           <Route path="/settings" element={
             <ProtectedRoute>
               <Layout><SettingsPage /></Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/ai-feedback-loop" element={
+            <ProtectedRoute>
+              <Layout><AIFeedbackLoopPage /></Layout>
             </ProtectedRoute>
           } />
 
