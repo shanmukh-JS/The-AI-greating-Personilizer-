@@ -883,7 +883,21 @@ function Dashboard() {
   const [travelType, setTravelType] = useState('All');
   const [refresh, setRefresh] = useState(0);
   const [expandedCard, setExpandedCard] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const calendarRef = React.useRef(null);
   const navigate = useNavigate();
+
+  // Close calendar on outside click
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (calendarRef.current && !calendarRef.current.contains(e.target)) {
+        setShowCalendar(false);
+      }
+    }
+    if (showCalendar) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showCalendar]);
 
   useEffect(() => {
     async function loadMetrics() {
@@ -1415,25 +1429,136 @@ function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Weekly Generation Volume Chart */}
-        <div onClick={() => { if (user?.role === 'admin') setExpandedCard('weekly'); }} className={`${user?.role === 'admin' ? 'cursor-pointer' : 'cursor-default'} p-6 bg-gradient-to-br from-indigo-50/40 via-white/80 to-cyan-50/30 dark:from-slate-900/80 dark:via-slate-900/60 dark:to-slate-950/80 backdrop-blur border border-indigo-100 dark:border-indigo-950/50 rounded-3xl lg:col-span-2 flex flex-col justify-between hover-highlight shadow-sm hover:shadow-indigo-500/10 transition-all`}>
+        <div className="p-6 bg-gradient-to-br from-indigo-50/40 via-white/80 to-cyan-50/30 dark:from-slate-900/80 dark:via-slate-900/60 dark:to-slate-950/80 backdrop-blur border border-indigo-100 dark:border-indigo-950/50 rounded-3xl lg:col-span-2 flex flex-col justify-between hover-highlight shadow-sm hover:shadow-indigo-500/10 transition-all">
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <h3 className="font-display font-bold text-xs uppercase tracking-widest text-slate-400">Weekly Generation Volume</h3>
-              <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-[9px] font-bold uppercase tracking-wider">7 Days</span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[9px] font-bold uppercase tracking-wider">+14.2% vs last week</span>
+              {/* 7 Days badge — click to reset calendar selection */}
+              <button
+                onClick={() => { setSelectedDate(null); setShowCalendar(false); }}
+                className={`px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-wider transition-all ${
+                  !selectedDate
+                    ? 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border-indigo-500/40'
+                    : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20'
+                }`}
+              >7 Days</button>
+              {!selectedDate && (
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[9px] font-bold uppercase tracking-wider">+14.2% vs last week</span>
+              )}
+              {selectedDate && (
+                <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 text-[9px] font-bold uppercase tracking-wider">
+                  {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+              )}
             </div>
-            <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-[9px] font-bold text-emerald-500 dark:text-emerald-400 uppercase tracking-wider">Real-time</span>
-            </span>
+            <div className="flex items-center gap-3">
+              {/* Calendar picker button */}
+              <div className="relative" ref={calendarRef}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowCalendar(v => !v); }}
+                  title="Pick a date to view that day's report"
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-[10px] font-semibold transition-all ${
+                    showCalendar || selectedDate
+                      ? 'bg-indigo-500 text-white border-indigo-500 shadow-lg shadow-indigo-500/30'
+                      : 'bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-indigo-500/10 hover:text-indigo-500 hover:border-indigo-500/30'
+                  }`}
+                >
+                  <Calendar size={12} />
+                  <span>{selectedDate ? 'Change Date' : 'Pick Date'}</span>
+                </button>
+                {showCalendar && (
+                  <div className="absolute right-0 top-full mt-2 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl shadow-black/20 p-4 min-w-[240px]">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">Select a date</p>
+                    <input
+                      type="date"
+                      max={new Date().toISOString().split('T')[0]}
+                      value={selectedDate || ''}
+                      onChange={e => { setSelectedDate(e.target.value); setShowCalendar(false); }}
+                      className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 cursor-pointer"
+                    />
+                    {selectedDate && (
+                      <button
+                        onClick={() => { setSelectedDate(null); setShowCalendar(false); }}
+                        className="mt-2 w-full text-center text-[10px] font-bold text-indigo-500 hover:text-indigo-400 py-1.5 rounded-lg hover:bg-indigo-500/10 transition-all"
+                      >Clear — Show 7 Days</button>
+                    )}
+                  </div>
+                )}
+              </div>
+              <span className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="text-[9px] font-bold text-emerald-500 dark:text-emerald-400 uppercase tracking-wider">Real-time</span>
+              </span>
+            </div>
           </div>
-          
-          {(() => {
+
+          {/* ── SINGLE DAY REPORT ── */}
+          {selectedDate ? (() => {
+            const allLocalGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+            const dayGreetings = allLocalGreetings.filter(g => {
+              if (!g.created_at) return false;
+              const d = new Date(g.created_at);
+              const y = d.getFullYear();
+              const m = String(d.getMonth() + 1).padStart(2, '0');
+              const day = String(d.getDate()).padStart(2, '0');
+              return `${y}-${m}-${day}` === selectedDate;
+            });
+            const localFbs = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+            const avgR = (() => {
+              const rs = dayGreetings.map(g => { const fb = localFbs.find(f => f.greeting_id === g.id); return fb ? fb.rating : null; }).filter(Boolean);
+              return rs.length ? (rs.reduce((a,b) => a+b,0)/rs.length).toFixed(1) : null;
+            })();
+            return (
+              <div className="flex flex-col gap-4">
+                {/* Day summary bar */}
+                <div className="flex items-center gap-4 p-4 rounded-2xl bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/10">
+                  <div className="flex flex-col items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-400 shadow-lg shadow-indigo-500/30 flex-shrink-0">
+                    <span className="text-2xl font-extrabold text-white leading-none">{dayGreetings.length}</span>
+                    <span className="text-[9px] font-bold text-indigo-100 uppercase tracking-wider mt-0.5">greetings</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-slate-800 dark:text-white">
+                      {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      {dayGreetings.length === 0 ? 'No greetings generated on this day.' : `${dayGreetings.length} greeting${dayGreetings.length > 1 ? 's' : ''} generated${avgR ? ` · Avg Rating: ${avgR}★` : ''}`}
+                    </p>
+                  </div>
+                </div>
+                {/* Greetings list for that day */}
+                {dayGreetings.length > 0 ? (
+                  <div className="space-y-2 max-h-44 overflow-y-auto pr-1 custom-scroll">
+                    {dayGreetings.map((g, i) => (
+                      <div key={g.id || i} className="flex items-start gap-3 p-3 rounded-xl bg-white/60 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
+                        <div className="h-7 w-7 rounded-full bg-gradient-to-br from-indigo-400 to-cyan-400 flex items-center justify-center text-white text-[10px] font-extrabold flex-shrink-0">
+                          {(g.customer_name || '?')[0].toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-slate-800 dark:text-white truncate">{g.customer_name || 'Unknown'}</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{g.destination || '—'} · {g.language || '—'} · {g.category || '—'}</p>
+                        </div>
+                        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 flex-shrink-0">
+                          {new Date(g.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <CalendarDays size={32} className="text-slate-300 dark:text-slate-700 mb-3" />
+                    <p className="text-sm font-semibold text-slate-400">No greetings on this day</p>
+                    <p className="text-xs text-slate-400/70 mt-1">Try a different date</p>
+                  </div>
+                )}
+              </div>
+            );
+          })() : (() => {
+            /* ── 7-DAY BAR CHART ── */
             const isFiltered = category !== 'All' || language !== 'All' || travelType !== 'All';
             const rawUsage = metrics?.dailyUsage || [];
             const hasRealData = rawUsage.some(d => d.count > 0);
-            const displayUsage = (user?.role === 'admin' || isFiltered || hasRealData) 
-              ? rawUsage 
+            const displayUsage = (user?.role === 'admin' || isFiltered || hasRealData)
+              ? rawUsage
               : [
                   { date: 'Sun', count: 3 }, { date: 'Mon', count: 7 }, { date: 'Tue', count: 12 },
                   { date: 'Wed', count: 8 }, { date: 'Thu', count: 5 }, { date: 'Fri', count: 9 }, { date: 'Sat', count: 4 }
@@ -1443,29 +1568,23 @@ function Dashboard() {
             const todayName = `${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][_now.getDay()]} ${_now.getDate()}`;
             return (
               <div className="w-full h-56 flex items-end justify-between px-2 pb-2 relative">
-                {/* Grid background lines */}
                 <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8 pt-4">
                   {[0,1,2,3].map(i => <div key={i} className="border-b border-dashed border-slate-200/50 dark:border-slate-800/50 w-full h-0"></div>)}
                 </div>
-                
                 {displayUsage.map((day) => {
                   const heightPct = (day.count / maxVal) * 75;
                   const isHighlight = day.date === todayName;
                   return (
                     <div key={day.date} className="flex flex-col items-center gap-3 flex-1 z-10 group relative h-full justify-end">
                       <span className={`text-xs font-bold font-mono transition-colors ${isHighlight ? 'text-indigo-500 dark:text-cyan-400' : 'text-slate-600 dark:text-slate-400 group-hover:text-indigo-400'}`}>{day.count}</span>
-                      
-                      {/* Glowing pill bar */}
-                      <div 
+                      <div
                         className={`w-6 sm:w-10 rounded-full bar-glow transition-all duration-300 ${
-                          isHighlight 
-                            ? 'bg-gradient-to-t from-indigo-600 via-indigo-500 to-cyan-400 opacity-100 shadow-[0_0_20px_rgba(6,182,212,0.5)]' 
+                          isHighlight
+                            ? 'bg-gradient-to-t from-indigo-600 via-indigo-500 to-cyan-400 opacity-100 shadow-[0_0_20px_rgba(6,182,212,0.5)]'
                             : 'bg-gradient-to-t from-indigo-200 to-indigo-300 dark:from-indigo-900/40 dark:to-indigo-750/50 opacity-80 dark:opacity-45 hover:opacity-100 dark:hover:opacity-85'
-                        }`} 
+                        }`}
                         style={{ height: `${heightPct}%`, minHeight: '16px' }}
-                      >
-                      </div>
-                      
+                      ></div>
                       <span className={`text-[10px] sm:text-[11px] font-bold tracking-wide mt-1 ${isHighlight ? 'text-indigo-500 dark:text-cyan-400' : 'text-slate-500 dark:text-slate-400'}`}>{day.date}</span>
                     </div>
                   );
