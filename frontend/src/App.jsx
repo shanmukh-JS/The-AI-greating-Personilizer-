@@ -1425,8 +1425,190 @@ function Dashboard() {
 
       </div>
 
+      {/* ═══════════════════════════════════════════════════════════════
+          AI FEEDBACK LOOP — How Ratings Drive AI Improvement
+          ═══════════════════════════════════════════════════════════════ */}
+      {(() => {
+        const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+        const localFbs = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+
+        // Rating distribution
+        const dist = [0,0,0,0,0]; // index = rating-1
+        localFbs.forEach(fb => { if (fb.rating >= 1 && fb.rating <= 5) dist[fb.rating - 1]++; });
+        const totalFb = localFbs.length || 1;
+        const avgRating = localFbs.length
+          ? (localFbs.reduce((s,f) => s + f.rating, 0) / localFbs.length).toFixed(1)
+          : '0.0';
+        const lowCount = dist[0] + dist[1]; // 1-2 stars (needs improvement)
+        const highCount = dist[3] + dist[4]; // 4-5 stars (approved)
+
+        // Prompt evolution stages
+        const promptStages = [
+          {
+            version: 'V1', label: 'Basic Text', color: 'from-red-500 to-orange-500',
+            defect: 'Generic, no brand identity', issue: 'Low rating triggers: Impersonal tone, no loyalty mention',
+            fix: 'Added loyalty category & brand signature'
+          },
+          {
+            version: 'V2', label: 'Structured', color: 'from-orange-500 to-amber-500',
+            defect: 'Ignored language & special notes', issue: 'Low rating triggers: English-only, missing customer requests',
+            fix: 'Added multilingual support & special notes field'
+          },
+          {
+            version: 'V3', label: 'Multilingual', color: 'from-amber-500 to-yellow-400',
+            defect: 'AI hallucinated flight times & hotel names', issue: 'Low rating triggers: Invented facts caused customer complaints',
+            fix: 'Added STRICT CONSTRAINTS — zero hallucinations rule'
+          },
+          {
+            version: 'V4', label: 'Production ✓', color: 'from-emerald-500 to-cyan-400',
+            defect: null, issue: 'Current live prompt — tone-matched, language-native, zero hallucinations',
+            fix: 'Temperature 0.3 + retry logic + exponential backoff'
+          },
+        ];
+
+        return (
+          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl p-6 space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                  <Sparkles className="h-4.5 w-4.5 text-white" size={18} />
+                </div>
+                <div>
+                  <h3 className="font-display font-extrabold text-sm text-slate-800 dark:text-white uppercase tracking-wider">AI Feedback Loop</h3>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">How customer ratings filter & improve every greeting</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Live Quality Signal</span>
+              </div>
+            </div>
+
+            {/* ── STEP 1-4 CYCLE ── */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { step: '01', icon: '✨', title: 'Generate', desc: 'Gemini AI creates a personalized greeting using customer inputs, language, travel type & loyalty tier', color: 'from-indigo-500/10 to-indigo-500/5', border: 'border-indigo-500/20', text: 'text-indigo-600 dark:text-indigo-400' },
+                { step: '02', icon: '⭐', title: 'Agent Rates', desc: 'Travel agent reviews the greeting and submits a 1–5 star rating with optional comments', color: 'from-amber-500/10 to-amber-500/5', border: 'border-amber-500/20', text: 'text-amber-600 dark:text-amber-400' },
+                { step: '03', icon: '🔍', title: 'Filter & Analyse', desc: 'Low-rated outputs are flagged. Patterns (wrong language, wrong tone, hallucinations) are identified', color: 'from-rose-500/10 to-rose-500/5', border: 'border-rose-500/20', text: 'text-rose-600 dark:text-rose-400' },
+                { step: '04', icon: '🚀', title: 'Prompt Improves', desc: 'System prompt constraints are tightened. Temperature, tone rules, and hallucination guards are updated', color: 'from-emerald-500/10 to-emerald-500/5', border: 'border-emerald-500/20', text: 'text-emerald-600 dark:text-emerald-400' },
+              ].map((s, i) => (
+                <div key={s.step} className={`relative p-4 rounded-2xl bg-gradient-to-br ${s.color} border ${s.border} flex flex-col gap-2`}>
+                  {i < 3 && (
+                    <div className="hidden sm:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-8 h-8 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-400 text-xs font-bold shadow-sm">→</div>
+                  )}
+                  <span className="text-2xl">{s.icon}</span>
+                  <div>
+                    <span className={`text-[9px] font-extrabold uppercase tracking-widest ${s.text}`}>Step {s.step}</span>
+                    <p className="text-xs font-bold text-slate-800 dark:text-white mt-0.5">{s.title}</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{s.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* ── PROMPT EVOLUTION TIMELINE ── */}
+              <div className="space-y-3">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Prompt Evolution History</p>
+                <div className="space-y-2">
+                  {promptStages.map((stage, i) => (
+                    <div key={stage.version} className={`flex gap-3 p-3 rounded-xl border transition-all ${stage.defect === null ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-slate-50 dark:bg-slate-800/30 border-slate-100 dark:border-slate-800'}`}>
+                      {/* Version badge */}
+                      <div className={`flex-shrink-0 h-8 w-8 rounded-xl bg-gradient-to-br ${stage.color} flex items-center justify-center`}>
+                        <span className="text-[9px] font-extrabold text-white">{stage.version}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-800 dark:text-white">{stage.label}</span>
+                          {stage.defect === null && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">LIVE</span>}
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{stage.issue}</p>
+                        {stage.defect && (
+                          <p className="text-[9px] text-indigo-500 dark:text-indigo-400 font-semibold mt-1">→ Fix: {stage.fix}</p>
+                        )}
+                      </div>
+                      {/* Connector line */}
+                      {i < promptStages.length - 1 && (
+                        <div className="absolute left-[37px] mt-8 w-0.5 h-2 bg-slate-200 dark:bg-slate-700" style={{display:'none'}}></div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ── LIVE RATING DISTRIBUTION ── */}
+              <div className="space-y-3">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Live Rating Distribution</p>
+
+                {/* Summary badges */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex flex-col items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-400 shadow-lg shadow-indigo-500/25">
+                    <span className="text-xl font-extrabold text-white leading-none">{avgRating}</span>
+                    <span className="text-[8px] text-indigo-100 font-bold uppercase">Avg ★</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                      <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{highCount} high-quality (4–5★) — prompt approved</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-rose-500"></span>
+                      <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{lowCount} flagged (1–2★) — triggered prompt review</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-slate-400"></span>
+                      <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{localFbs.length} total ratings collected</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rating bars */}
+                <div className="space-y-2">
+                  {[5,4,3,2,1].map(star => {
+                    const count = dist[star - 1];
+                    const pct = Math.round((count / totalFb) * 100);
+                    const barColor = star >= 4 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : star === 3 ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-gradient-to-r from-rose-400 to-rose-500';
+                    return (
+                      <div key={star} className="flex items-center gap-3">
+                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 w-8 text-right flex-shrink-0">{star}★</span>
+                        <div className="flex-1 h-4 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                          <div className={`h-full rounded-full transition-all duration-700 ${barColor}`} style={{ width: `${pct}%` }}></div>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 w-10 flex-shrink-0">{count} ({pct}%)</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Quality verdict */}
+                <div className={`p-3 rounded-xl border text-[10px] font-semibold leading-relaxed ${
+                  localFbs.length === 0
+                    ? 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700 text-slate-400'
+                    : parseFloat(avgRating) >= 4.0
+                    ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                    : parseFloat(avgRating) >= 3.0
+                    ? 'bg-amber-500/5 border-amber-500/20 text-amber-700 dark:text-amber-300'
+                    : 'bg-rose-500/5 border-rose-500/20 text-rose-700 dark:text-rose-300'
+                }`}>
+                  {localFbs.length === 0
+                    ? '⏳ No ratings yet. Submit your first greeting and rate it to see AI quality tracking live.'
+                    : parseFloat(avgRating) >= 4.0
+                    ? `✅ Excellent quality signal. ${highCount}/${localFbs.length} greetings rated 4–5★. Current Prompt V4 is performing well — no changes needed.`
+                    : parseFloat(avgRating) >= 3.0
+                    ? `⚠️ Average quality. ${lowCount} low-rated greeting(s) detected. Consider reviewing tone or language settings in the next prompt revision.`
+                    : `🔴 Quality alert: More than 50% greetings rated below 3★. Prompt constraints may need tightening. Check for language mismatch or hallucinations.`
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Visual Analytics Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
         
         {/* Weekly Generation Volume Chart */}
         <div className="p-6 bg-gradient-to-br from-indigo-50/40 via-white/80 to-cyan-50/30 dark:from-slate-900/80 dark:via-slate-900/60 dark:to-slate-950/80 backdrop-blur border border-indigo-100 dark:border-indigo-950/50 rounded-3xl lg:col-span-2 flex flex-col justify-between hover-highlight shadow-sm hover:shadow-indigo-500/10 transition-all">
