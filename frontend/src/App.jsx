@@ -8,7 +8,7 @@ import {
   Sparkles, History, LayoutDashboard, FileCode, Star, 
   Settings, User, LogOut, Copy, Download, Share2, 
   Menu, X, Sun, Moon, AlertCircle, Plus, Edit, Trash2, CheckCircle, HelpCircle, Calendar,
-  Lock, Eye, EyeOff, RefreshCw, ChevronLeft, ChevronRight, CalendarDays, Camera, UploadCloud, ShieldCheck, MapPin, TrendingUp
+  Lock, Eye, EyeOff, RefreshCw, ChevronLeft, ChevronRight, CalendarDays, Camera, UploadCloud, ShieldCheck, MapPin, TrendingUp, Settings2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -18,7 +18,7 @@ const safeParseLocal = (key, defaultVal) => {
   try {
     const val = localStorage.getItem(key);
     if (!val || val === 'undefined') return defaultVal;
-    return JSON.parse(val);
+    const parsed = JSON.parse(val); return (Array.isArray(defaultVal) && !Array.isArray(parsed)) ? defaultVal : parsed;
   } catch (e) {
     console.error('Error parsing local storage for key:', key, e);
     return defaultVal;
@@ -386,7 +386,7 @@ function Layout({ children }) {
   const menuItems = [
     { name: 'Dashboard',          path: '/dashboard',        icon: LayoutDashboard },
     { name: 'Greeting Generator', path: '/generator',         icon: Sparkles        },
-    { name: 'AI Feedback Loop',   path: '/ai-feedback-loop', icon: TrendingUp      },
+    { name: 'AI Feedback Loop',   path: '/ai-feedback-loop', icon: TrendingUp, Settings2      },
     { name: 'History Log',        path: '/history',          icon: History         },
     { name: 'Templates Manager',  path: '/templates',        icon: FileCode        },
     { name: 'User Profile',       path: '/profile',          icon: User            },
@@ -4790,7 +4790,7 @@ function AIFeedbackLoopPage() {
         className="flex items-start gap-5"
       >
         <div className="h-14 w-14 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-xl shadow-indigo-500/30 flex-shrink-0">
-          <TrendingUp className="h-7 w-7 text-white" />
+          <TrendingUp, Settings2 className="h-7 w-7 text-white" />
         </div>
         <div>
           <h1 className="text-2xl font-display font-extrabold text-slate-900 dark:text-white">AI Feedback Loop</h1>
