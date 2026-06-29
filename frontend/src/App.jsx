@@ -4762,7 +4762,18 @@ function AIFeedbackLoopPage() {
   const midCount  = dist[2];
   const highCount = dist[3] + dist[4];
 
-  const promptStages = [
+  const gradients = ['from-red-500 to-orange-500', 'from-orange-500 to-amber-500', 'from-amber-500 to-yellow-400', 'from-emerald-500 to-cyan-400', 'from-indigo-500 to-purple-500', 'from-pink-500 to-rose-500'];
+  const dbStages = (metrics?.promptHistory || []).map((dbItem, index) => ({
+    version: dbItem.version_name,
+    label: dbItem.title,
+    gradient: gradients[index % gradients.length],
+    problem: dbItem.issues || null,
+    ratingImpact: dbItem.rating_impact || '',
+    fix: dbItem.fix_description || '',
+    active: dbItem.is_live
+  }));
+
+  const promptStages = dbStages.length ? dbStages : [
     {
       version: 'V1', label: 'Basic Text Generator', gradient: 'from-red-500 to-orange-500',
       problem: 'Outputs were too generic, inconsistent in tone, no brand identity.',
