@@ -128,11 +128,16 @@ export function AuthProvider({ children }) {
           );
           if (filtered.length !== data.length) {
             localStorage.setItem(key, JSON.stringify(filtered));
+            return true;
           }
         }
+        return false;
       };
-      removeMock('local_greetings');
-      removeMock('local_feedbacks');
+      const cleanedGreetings = removeMock('local_greetings');
+      const cleanedFeedbacks = removeMock('local_feedbacks');
+      if (cleanedGreetings || cleanedFeedbacks) {
+        window.location.reload();
+      }
 
       // Enforce History Retention Period
       const enforceRetention = () => {
