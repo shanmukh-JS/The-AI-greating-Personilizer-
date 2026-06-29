@@ -133,8 +133,8 @@ export function AuthProvider({ children }) {
         }
         return false;
       };
-      const cleanedGreetings = removeMock('local_greetings');
-      const cleanedFeedbacks = removeMock('local_feedbacks');
+      const cleanedGreetings = removeMock('live_greetings');
+      const cleanedFeedbacks = removeMock('live_feedbacks');
       if (cleanedGreetings || cleanedFeedbacks) {
         window.location.reload();
       }
@@ -146,8 +146,8 @@ export function AuthProvider({ children }) {
         const days = parseInt(retentionDays, 10);
         if (isNaN(days)) return;
 
-        const localGreetings = safeParseLocal('local_greetings', []);
-        const localFeedbacks = safeParseLocal('local_feedbacks', []);
+        const localGreetings = safeParseLocal('live_greetings', []);
+        const localFeedbacks = safeParseLocal('live_feedbacks', []);
         
         const cutoff = new Date();
         cutoff.setDate(cutoff.getDate() - days);
@@ -157,8 +157,8 @@ export function AuthProvider({ children }) {
         const prunedFeedbacks = localFeedbacks.filter(f => prunedIds.has(f.greeting_id));
 
         if (prunedGreetings.length !== localGreetings.length) {
-          localStorage.setItem('local_greetings', JSON.stringify(prunedGreetings));
-          localStorage.setItem('local_feedbacks', JSON.stringify(prunedFeedbacks));
+          localStorage.setItem('live_greetings', JSON.stringify(prunedGreetings));
+          localStorage.setItem('live_feedbacks', JSON.stringify(prunedFeedbacks));
         }
       };
       enforceRetention();
@@ -943,12 +943,12 @@ function Dashboard() {
       try {
         const res = await api.get('/history');
         let combined = [...res.data];
-        const localGreetings = safeParseLocal('local_greetings', []);
+        const localGreetings = safeParseLocal('live_greetings', []);
         localGreetings.forEach(lg => {
           if (!combined.find(g => g.id === lg.id)) combined.push(lg);
         });
         
-        const localFeedbacks = safeParseLocal('local_feedbacks', []);
+        const localFeedbacks = safeParseLocal('live_feedbacks', []);
         allGreetings = combined.map(g => {
           const fb = localFeedbacks.find(f => f.greeting_id === g.id);
           if (fb) return { ...g, rating: fb.rating, comments: fb.comments };
@@ -969,8 +969,8 @@ function Dashboard() {
         });
       } catch (err) {
         console.warn("API offline, rendering simulated analytics");
-        const localGreetings = safeParseLocal('local_greetings', []);
-        const localFeedbacks = safeParseLocal('local_feedbacks', []);
+        const localGreetings = safeParseLocal('live_greetings', []);
+        const localFeedbacks = safeParseLocal('live_feedbacks', []);
         
         allGreetings = localGreetings.map(g => {
           const fb = localFeedbacks.find(f => f.greeting_id === g.id);
@@ -1463,8 +1463,8 @@ function Dashboard() {
           AI FEEDBACK LOOP — How Ratings Drive AI Improvement
           ═══════════════════════════════════════════════════════════════ */}
       {(() => {
-        const localGreetings = safeParseLocal('local_greetings', []);
-        const localFbs = safeParseLocal('local_feedbacks', []);
+        const localGreetings = safeParseLocal('live_greetings', []);
+        const localFbs = safeParseLocal('live_feedbacks', []);
 
         // Rating distribution
         const dist = [0,0,0,0,0]; // index = rating-1
@@ -1598,7 +1598,7 @@ function Dashboard() {
 
           {/* ── SINGLE DAY REPORT ── */}
           {selectedDate ? (() => {
-            const allLocalGreetings = safeParseLocal('local_greetings', []);
+            const allLocalGreetings = safeParseLocal('live_greetings', []);
             const dayGreetings = allLocalGreetings.filter(g => {
               if (!g.created_at) return false;
               const d = new Date(g.created_at);
@@ -1607,7 +1607,7 @@ function Dashboard() {
               const day = String(d.getDate()).padStart(2, '0');
               return `${y}-${m}-${day}` === selectedDate;
             });
-            const localFbs = safeParseLocal('local_feedbacks', []);
+            const localFbs = safeParseLocal('live_feedbacks', []);
             const avgR = (() => {
               const rs = dayGreetings.map(g => { const fb = localFbs.find(f => f.greeting_id === g.id); return fb ? fb.rating : null; }).filter(Boolean);
               return rs.length ? (rs.reduce((a,b) => a+b,0)/rs.length).toFixed(1) : null;
@@ -2259,8 +2259,8 @@ function GreetingGenerator() {
     try {
       const res = await api.get('/history');
       let combined = [...res.data];
-      const localGreetings = safeParseLocal('local_greetings', []);
-      const localFeedbacks = safeParseLocal('local_feedbacks', []);
+      const localGreetings = safeParseLocal('live_greetings', []);
+      const localFeedbacks = safeParseLocal('live_feedbacks', []);
       
       localGreetings.forEach(lg => {
         if (!combined.find(g => g.id === lg.id)) combined.push(lg);
@@ -2276,8 +2276,8 @@ function GreetingGenerator() {
       setHistoryList(combined);
     } catch (e) {
       console.warn("API offline, falling back to local storage logs");
-      const localGreetings = safeParseLocal('local_greetings', []);
-      const localFeedbacks = safeParseLocal('local_feedbacks', []);
+      const localGreetings = safeParseLocal('live_greetings', []);
+      const localFeedbacks = safeParseLocal('live_feedbacks', []);
       
       let combined = localGreetings.map(g => {
         const fb = localFeedbacks.find(f => f.greeting_id === g.id);
@@ -2377,10 +2377,10 @@ function GreetingGenerator() {
     setHistoryList(prev => prev.filter(item => item.id !== id));
     if (resultGreeting && resultGreeting.id === id) setResultGreeting(null);
     // Always clean up local storage too
-    const localGreetings = safeParseLocal('local_greetings', []);
-    localStorage.setItem('local_greetings', JSON.stringify(localGreetings.filter(g => g.id !== id)));
-    const localFeedbacks = safeParseLocal('local_feedbacks', []);
-    localStorage.setItem('local_feedbacks', JSON.stringify(localFeedbacks.filter(f => f.greeting_id !== id)));
+    const localGreetings = safeParseLocal('live_greetings', []);
+    localStorage.setItem('live_greetings', JSON.stringify(localGreetings.filter(g => g.id !== id)));
+    const localFeedbacks = safeParseLocal('live_feedbacks', []);
+    localStorage.setItem('live_feedbacks', JSON.stringify(localFeedbacks.filter(f => f.greeting_id !== id)));
     try {
       await api.delete(`/history/${id}`);
       setAlertMessage('Greeting permanently deleted.');
@@ -2482,10 +2482,10 @@ function GreetingGenerator() {
       });
       const generatedGreeting = res.data;
       
-      const localGreetings = safeParseLocal('local_greetings', []);
+      const localGreetings = safeParseLocal('live_greetings', []);
       if (!localGreetings.find(g => g.id === generatedGreeting.id)) {
         localGreetings.push(generatedGreeting);
-        localStorage.setItem('local_greetings', JSON.stringify(localGreetings));
+        localStorage.setItem('live_greetings', JSON.stringify(localGreetings));
       }
       
       setResultGreeting(generatedGreeting);
@@ -2553,9 +2553,9 @@ function GreetingGenerator() {
         status: 'draft'
       };
 
-      const localGreetings = safeParseLocal('local_greetings', []);
+      const localGreetings = safeParseLocal('live_greetings', []);
       localGreetings.push(generatedGreeting);
-      localStorage.setItem('local_greetings', JSON.stringify(localGreetings));
+      localStorage.setItem('live_greetings', JSON.stringify(localGreetings));
 
       setResultGreeting(generatedGreeting);
         loadGreetingsHistory();
@@ -2624,18 +2624,18 @@ function GreetingGenerator() {
 
     // Mark greeting as shared in DB / local storage
     api.put(`/history/${resultGreeting.id}/status`, { status: 'shared' }).catch(() => {
-      const localGreetings = safeParseLocal('local_greetings', []);
+      const localGreetings = safeParseLocal('live_greetings', []);
       const idx = localGreetings.findIndex(g => g.id === resultGreeting.id);
       if (idx !== -1) {
         localGreetings[idx].status = 'shared';
-        localStorage.setItem('local_greetings', JSON.stringify(localGreetings));
+        localStorage.setItem('live_greetings', JSON.stringify(localGreetings));
         setResultGreeting({ ...resultGreeting, status: 'shared' });
       }
     });
   };
 
   const saveFeedbackLocally = (greetingId, ratingVal, commentsVal) => {
-    const localFeedbacks = safeParseLocal('local_feedbacks', []);
+    const localFeedbacks = safeParseLocal('live_feedbacks', []);
     const existingIdx = localFeedbacks.findIndex(f => f.greeting_id === greetingId);
     const newFeedback = {
       id: existingIdx !== -1 ? localFeedbacks[existingIdx].id : 'local_f_' + Math.random().toString(36).substring(7),
@@ -2649,7 +2649,7 @@ function GreetingGenerator() {
     } else {
       localFeedbacks.push(newFeedback);
     }
-    localStorage.setItem('local_feedbacks', JSON.stringify(localFeedbacks));
+    localStorage.setItem('live_feedbacks', JSON.stringify(localFeedbacks));
   };
 
   const submitFeedback = async () => {
@@ -3219,11 +3219,11 @@ function GreetingGenerator() {
                       api.put(`/history/${record.id}/status`, { status: 'shared' }).then(() => {
                         loadGreetingsHistory();
                       }).catch(() => {
-                        const localGreetings = safeParseLocal('local_greetings', []);
+                        const localGreetings = safeParseLocal('live_greetings', []);
                         const idx = localGreetings.findIndex(g => g.id === record.id);
                         if (idx !== -1) {
                           localGreetings[idx].status = 'shared';
-                          localStorage.setItem('local_greetings', JSON.stringify(localGreetings));
+                          localStorage.setItem('live_greetings', JSON.stringify(localGreetings));
                           loadGreetingsHistory();
                         }
                       });
@@ -3316,8 +3316,8 @@ function HistoryLog() {
     try {
       const res = await api.get('/history', { params: { search } });
       let combined = [...res.data];
-      const localGreetings = safeParseLocal('local_greetings', []);
-      const localFeedbacks = safeParseLocal('local_feedbacks', []);
+      const localGreetings = safeParseLocal('live_greetings', []);
+      const localFeedbacks = safeParseLocal('live_feedbacks', []);
       
       localGreetings.forEach(lg => {
         if (!combined.find(g => g.id === lg.id)) combined.push(lg);
@@ -3340,8 +3340,8 @@ function HistoryLog() {
       setHistory(combined);
     } catch (e) {
       console.warn("API Offline, displaying simulated history records");
-      const localGreetings = safeParseLocal('local_greetings', []);
-      const localFeedbacks = safeParseLocal('local_feedbacks', []);
+      const localGreetings = safeParseLocal('live_greetings', []);
+      const localFeedbacks = safeParseLocal('live_feedbacks', []);
       
       let combined = localGreetings.map(g => {
         const fb = localFeedbacks.find(f => f.greeting_id === g.id);
@@ -3366,10 +3366,10 @@ function HistoryLog() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this log?")) return;
     setHistory(prev => prev.filter(item => item.id !== id));
-    const localGreetings = safeParseLocal('local_greetings', []);
-    localStorage.setItem('local_greetings', JSON.stringify(localGreetings.filter(g => g.id !== id)));
-    const localFeedbacks = safeParseLocal('local_feedbacks', []);
-    localStorage.setItem('local_feedbacks', JSON.stringify(localFeedbacks.filter(f => f.greeting_id !== id)));
+    const localGreetings = safeParseLocal('live_greetings', []);
+    localStorage.setItem('live_greetings', JSON.stringify(localGreetings.filter(g => g.id !== id)));
+    const localFeedbacks = safeParseLocal('live_feedbacks', []);
+    localStorage.setItem('live_feedbacks', JSON.stringify(localFeedbacks.filter(f => f.greeting_id !== id)));
     try {
       await api.delete(`/history/${id}`);
     } catch (e) {
@@ -4385,7 +4385,7 @@ function SettingsPage() {
 
   const handleClearData = () => {
     if (!clearConfirm) { setClearConfirm(true); return; }
-    const keysToRemove = ['local_greetings', 'local_feedbacks', 'custom_presets',
+    const keysToRemove = ['live_greetings', 'live_feedbacks', 'custom_presets',
       'gen_name','gen_destination','gen_bookingHistory','gen_travelType',
       'gen_preferredLanguage','gen_customerCategory','gen_specialNotes',
       'gen_travelDate','gen_whatsappNumber','gen_resultGreeting',
@@ -4396,8 +4396,8 @@ function SettingsPage() {
   };
 
   const handleExportData = () => {
-    const greetings = safeParseLocal('local_greetings', []);
-    const feedbacks = safeParseLocal('local_feedbacks', []);
+    const greetings = safeParseLocal('live_greetings', []);
+    const feedbacks = safeParseLocal('live_feedbacks', []);
     const blob = new Blob([JSON.stringify({ greetings, feedbacks, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'manivtha_crm_export.json'; a.click();
@@ -4699,8 +4699,8 @@ function AIFeedbackLoopPage() {
     );
   }
 
-  const localFbs = safeParseLocal('local_feedbacks', []);
-  const localGreetings = safeParseLocal('local_greetings', []);
+  const localFbs = safeParseLocal('live_feedbacks', []);
+  const localGreetings = safeParseLocal('live_greetings', []);
 
   const dist = [0, 0, 0, 0, 0];
   localFbs.forEach(fb => { if (fb.rating >= 1 && fb.rating <= 5) dist[fb.rating - 1]++; });
