@@ -192,6 +192,19 @@ app.post('/api/generate', authenticateToken, async (req, res) => {
   }
 });
 
+// POST /api/sync (Sync offline greeting)
+app.post('/api/sync', authenticateToken, async (req, res) => {
+  try {
+    const greeting = req.body;
+    greeting.user_id = req.user.id;
+    const savedRecord = await db.syncOfflineGreeting(greeting);
+    res.status(201).json(savedRecord || { message: 'Already synced' });
+  } catch (error) {
+    console.error('Sync error:', error);
+    res.status(500).json({ error: 'Failed to sync' });
+  }
+});
+
 // GET /api/history (Query generated log list)
 app.get('/api/history', authenticateToken, async (req, res) => {
   try {

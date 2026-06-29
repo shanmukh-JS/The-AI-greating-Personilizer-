@@ -2289,6 +2289,21 @@ function GreetingGenerator() {
       const localGreetings = safeParseLocal('live_greetings', []);
       const localFeedbacks = safeParseLocal('live_feedbacks', []);
       
+      // BACKGROUND OFFLINE SYNC
+      const offlineGreetings = localGreetings.filter(lg => !combined.find(g => g.id === lg.id));
+      if (offlineGreetings.length > 0) {
+        Promise.all(offlineGreetings.map(g => api.post('/sync', g).catch(e => console.warn('Sync failed', e))))
+          .then(() => console.log('Offline greetings synced to cloud!'));
+      }
+      // Also sync offline feedbacks
+      const offlineFeedbacks = localFeedbacks.filter(lf => {
+        const cloudG = combined.find(g => g.id === lf.greeting_id);
+        return cloudG && !cloudG.rating;
+      });
+      if (offlineFeedbacks.length > 0) {
+        Promise.all(offlineFeedbacks.map(f => api.post('/feedback', { greeting_id: f.greeting_id, rating: f.rating, comments: f.comments }).catch(e => null)));
+      }
+      
       localGreetings.forEach(lg => {
         if (!combined.find(g => g.id === lg.id)) combined.push(lg);
       });

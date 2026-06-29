@@ -170,6 +170,25 @@ async function createGreeting(data) {
   return res.rows[0];
 }
 
+// SYNC OFFLINE GREETING
+async function syncOfflineGreeting(data) {
+  const query = `
+    INSERT INTO greetings (
+      id, user_id, customer_name, destination, travel_date, booking_history,
+      travel_type, language, category, special_notes, whatsapp_number, generated_text, created_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    ON CONFLICT (id) DO NOTHING
+    RETURNING *
+  `;
+  const values = [
+    data.id, data.user_id, data.customer_name || '', data.destination || '', data.travel_date || '', data.booking_history || '',
+    data.travel_type || '', data.language || '', data.category || '', data.special_notes || '',
+    data.whatsapp_number || '', data.generated_text || '', data.created_at || new Date()
+  ];
+  const res = await pool.query(query, values);
+  return res.rows[0];
+}
+
 async function updateGreetingStatus(id, status) {
   const res = await pool.query('UPDATE greetings SET status = $1 WHERE id = $2 RETURNING *', [status, id]);
   return res.rows[0];
@@ -414,6 +433,7 @@ module.exports = {
   updateUserEmail,
   updateUserProfile,
   createGreeting,
+  syncOfflineGreeting,
   updateGreetingStatus,
   getGreetingsHistory,
   getGreetingById,
