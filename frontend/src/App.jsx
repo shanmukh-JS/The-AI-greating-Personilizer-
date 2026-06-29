@@ -4668,6 +4668,35 @@ function NotFoundPage() {
 // AI FEEDBACK LOOP PAGE
 // -------------------------------------------------------------
 function AIFeedbackLoopPage() {
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isPageLoading) {
+    return (
+      <div className="w-full h-[80vh] flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-500">
+        <div className="relative flex items-center justify-center">
+          <div className="absolute inset-0 bg-indigo-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
+          <div className="h-24 w-24 rounded-[2rem] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-indigo-500/40 animate-bounce relative z-10">
+            <Sparkles className="h-12 w-12 text-white animate-pulse" />
+          </div>
+        </div>
+        <div className="flex flex-col items-center space-y-3">
+          <h2 className="font-display font-extrabold text-2xl text-slate-800 dark:text-white tracking-wide">Analysing Live Feedback Data</h2>
+          <div className="flex items-center gap-3">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">Aggregating Quality Signals...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const localFbs = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
   const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
 
