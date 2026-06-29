@@ -14,6 +14,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation, Navigate, useSearchParams } from 'react-router-dom';
 
+const safeParseLocal = (key, defaultVal) => {
+  try {
+    const val = localStorage.getItem(key);
+    if (!val || val === 'undefined') return defaultVal;
+    return JSON.parse(val);
+  } catch (e) {
+    console.error('Error parsing local storage for key:', key, e);
+    return defaultVal;
+  }
+};
+
 // API Configuration & Base Instance with Automatic Interceptors
 const API_URL = import.meta.env.VITE_API_URL;
 const api = axios.create({ baseURL: API_URL, timeout: 1000 });
@@ -149,8 +160,8 @@ export function AuthProvider({ children }) {
         const days = parseInt(retentionDays, 10);
         if (isNaN(days)) return;
 
-        const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
-        const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+        const localGreetings = safeParseLocal('local_greetings', []);
+        const localFeedbacks = safeParseLocal('local_feedbacks', []);
         
         const cutoff = new Date();
         cutoff.setDate(cutoff.getDate() - days);
@@ -886,7 +897,7 @@ function ForgotPasswordPage() {
                 value={email} 
                 onChange={e => setEmail(e.target.value)} 
                 placeholder="e.g. admin@manivthatravels.com" 
-                className="w-full px-4 py-3.5 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-2xl text-white outline-none transition-colors placeholder:text-slate-600" 
+                className="w-full h-[50px] px-4 py-0 leading-normal.5 bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-2xl text-white outline-none transition-colors placeholder:text-slate-600" 
               />
             </div>
             
@@ -946,12 +957,12 @@ function Dashboard() {
       try {
         const res = await api.get('/history');
         let combined = [...res.data];
-        const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+        const localGreetings = safeParseLocal('local_greetings', []);
         localGreetings.forEach(lg => {
           if (!combined.find(g => g.id === lg.id)) combined.push(lg);
         });
         
-        const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+        const localFeedbacks = safeParseLocal('local_feedbacks', []);
         allGreetings = combined.map(g => {
           const fb = localFeedbacks.find(f => f.greeting_id === g.id);
           if (fb) return { ...g, rating: fb.rating, comments: fb.comments };
@@ -972,8 +983,8 @@ function Dashboard() {
         });
       } catch (err) {
         console.warn("API offline, rendering simulated analytics");
-        const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
-        const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+        const localGreetings = safeParseLocal('local_greetings', []);
+        const localFeedbacks = safeParseLocal('local_feedbacks', []);
         
         allGreetings = localGreetings.map(g => {
           const fb = localFeedbacks.find(f => f.greeting_id === g.id);
@@ -1466,8 +1477,8 @@ function Dashboard() {
           AI FEEDBACK LOOP — How Ratings Drive AI Improvement
           ═══════════════════════════════════════════════════════════════ */}
       {(() => {
-        const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
-        const localFbs = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+        const localGreetings = safeParseLocal('local_greetings', []);
+        const localFbs = safeParseLocal('local_feedbacks', []);
 
         // Rating distribution
         const dist = [0,0,0,0,0]; // index = rating-1
@@ -1601,7 +1612,7 @@ function Dashboard() {
 
           {/* ── SINGLE DAY REPORT ── */}
           {selectedDate ? (() => {
-            const allLocalGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+            const allLocalGreetings = safeParseLocal('local_greetings', []);
             const dayGreetings = allLocalGreetings.filter(g => {
               if (!g.created_at) return false;
               const d = new Date(g.created_at);
@@ -1610,7 +1621,7 @@ function Dashboard() {
               const day = String(d.getDate()).padStart(2, '0');
               return `${y}-${m}-${day}` === selectedDate;
             });
-            const localFbs = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+            const localFbs = safeParseLocal('local_feedbacks', []);
             const avgR = (() => {
               const rs = dayGreetings.map(g => { const fb = localFbs.find(f => f.greeting_id === g.id); return fb ? fb.rating : null; }).filter(Boolean);
               return rs.length ? (rs.reduce((a,b) => a+b,0)/rs.length).toFixed(1) : null;
@@ -2262,8 +2273,8 @@ function GreetingGenerator() {
     try {
       const res = await api.get('/history');
       let combined = [...res.data];
-      const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
-      const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+      const localGreetings = safeParseLocal('local_greetings', []);
+      const localFeedbacks = safeParseLocal('local_feedbacks', []);
       
       localGreetings.forEach(lg => {
         if (!combined.find(g => g.id === lg.id)) combined.push(lg);
@@ -2279,8 +2290,8 @@ function GreetingGenerator() {
       setHistoryList(combined);
     } catch (e) {
       console.warn("API offline, falling back to local storage logs");
-      const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
-      const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+      const localGreetings = safeParseLocal('local_greetings', []);
+      const localFeedbacks = safeParseLocal('local_feedbacks', []);
       
       let combined = localGreetings.map(g => {
         const fb = localFeedbacks.find(f => f.greeting_id === g.id);
@@ -2307,7 +2318,7 @@ function GreetingGenerator() {
       console.warn("API offline, falling back to local storage presets");
       let local = [];
       try {
-        local = JSON.parse(localStorage.getItem('custom_presets') || '[]');
+        local = safeParseLocal('custom_presets', []);
       } catch (err) {
         local = [];
       }
@@ -2380,9 +2391,9 @@ function GreetingGenerator() {
     setHistoryList(prev => prev.filter(item => item.id !== id));
     if (resultGreeting && resultGreeting.id === id) setResultGreeting(null);
     // Always clean up local storage too
-    const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+    const localGreetings = safeParseLocal('local_greetings', []);
     localStorage.setItem('local_greetings', JSON.stringify(localGreetings.filter(g => g.id !== id)));
-    const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+    const localFeedbacks = safeParseLocal('local_feedbacks', []);
     localStorage.setItem('local_feedbacks', JSON.stringify(localFeedbacks.filter(f => f.greeting_id !== id)));
     try {
       await api.delete(`/history/${id}`);
@@ -2485,7 +2496,7 @@ function GreetingGenerator() {
       });
       const generatedGreeting = res.data;
       
-      const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+      const localGreetings = safeParseLocal('local_greetings', []);
       if (!localGreetings.find(g => g.id === generatedGreeting.id)) {
         localGreetings.push(generatedGreeting);
         localStorage.setItem('local_greetings', JSON.stringify(localGreetings));
@@ -2556,7 +2567,7 @@ function GreetingGenerator() {
         status: 'draft'
       };
 
-      const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+      const localGreetings = safeParseLocal('local_greetings', []);
       localGreetings.push(generatedGreeting);
       localStorage.setItem('local_greetings', JSON.stringify(localGreetings));
 
@@ -2627,7 +2638,7 @@ function GreetingGenerator() {
 
     // Mark greeting as shared in DB / local storage
     api.put(`/history/${resultGreeting.id}/status`, { status: 'shared' }).catch(() => {
-      const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+      const localGreetings = safeParseLocal('local_greetings', []);
       const idx = localGreetings.findIndex(g => g.id === resultGreeting.id);
       if (idx !== -1) {
         localGreetings[idx].status = 'shared';
@@ -2638,7 +2649,7 @@ function GreetingGenerator() {
   };
 
   const saveFeedbackLocally = (greetingId, ratingVal, commentsVal) => {
-    const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+    const localFeedbacks = safeParseLocal('local_feedbacks', []);
     const existingIdx = localFeedbacks.findIndex(f => f.greeting_id === greetingId);
     const newFeedback = {
       id: existingIdx !== -1 ? localFeedbacks[existingIdx].id : 'local_f_' + Math.random().toString(36).substring(7),
@@ -2898,7 +2909,7 @@ function GreetingGenerator() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Customer Name</label>
-              <input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Ravi Kumar" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
+              <input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Ravi Kumar" className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">WhatsApp Number</label>
@@ -2911,12 +2922,12 @@ function GreetingGenerator() {
                 }} 
                 placeholder="e.g. 9876543210" 
                 maxLength="10"
-                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" 
+                className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" 
               />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Destination</label>
-              <input type="text" required value={destination} onChange={e => setDestination(e.target.value)} placeholder="e.g. Tirupati" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
+              <input type="text" required value={destination} onChange={e => setDestination(e.target.value)} placeholder="e.g. Tirupati" className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
             </div>
           </div>
 
@@ -3011,7 +3022,7 @@ function GreetingGenerator() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Travel Group/Type</label>
-              <select value={travelType} onChange={e => setTravelType(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer">
+              <select value={travelType} onChange={e => setTravelType(e.target.value)} className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer">
                 <option value="Family Trip">Family Trip</option>
                 <option value="Spiritual Tour">Spiritual Tour</option>
                 <option value="Honeymoon">Honeymoon</option>
@@ -3024,11 +3035,11 @@ function GreetingGenerator() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Booking History</label>
-              <input type="text" value={bookingHistory} onChange={e => setBookingHistory(e.target.value)} placeholder="e.g. 3 Previous Trips" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
+              <input type="text" value={bookingHistory} onChange={e => setBookingHistory(e.target.value)} placeholder="e.g. 3 Previous Trips" className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Language</label>
-              <select value={preferredLanguage} onChange={e => setPreferredLanguage(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer">
+              <select value={preferredLanguage} onChange={e => setPreferredLanguage(e.target.value)} className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer">
                 <option value="English">English</option>
                 <option value="Telugu">Telugu</option>
                 <option value="Hindi">Hindi</option>
@@ -3041,7 +3052,7 @@ function GreetingGenerator() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Category</label>
-              <select value={customerCategory} onChange={e => setCustomerCategory(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer">
+              <select value={customerCategory} onChange={e => setCustomerCategory(e.target.value)} className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20 cursor-pointer">
                 <option value="Standard">Standard</option>
                 <option value="Premium">Premium</option>
                 <option value="VIP">VIP</option>
@@ -3051,7 +3062,7 @@ function GreetingGenerator() {
 
           <div>
             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Special Instructions / Notes</label>
-            <textarea value={specialNotes} onChange={e => setSpecialNotes(e.target.value)} rows="3" placeholder="e.g. Senior citizen requires wheelchair assistance." className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm resize-none transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
+            <textarea value={specialNotes} onChange={e => setSpecialNotes(e.target.value)} rows="3" placeholder="e.g. Senior citizen requires wheelchair assistance." className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm resize-none transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
           </div>
 
           <button type="submit" disabled={loading} className="w-full py-4 hero-gradient text-white rounded-2xl font-bold hover:opacity-95 hover:scale-[1.01] active:scale-[0.99] transition-all text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-indigo-500/10">
@@ -3222,7 +3233,7 @@ function GreetingGenerator() {
                       api.put(`/history/${record.id}/status`, { status: 'shared' }).then(() => {
                         loadGreetingsHistory();
                       }).catch(() => {
-                        const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+                        const localGreetings = safeParseLocal('local_greetings', []);
                         const idx = localGreetings.findIndex(g => g.id === record.id);
                         if (idx !== -1) {
                           localGreetings[idx].status = 'shared';
@@ -3319,8 +3330,8 @@ function HistoryLog() {
     try {
       const res = await api.get('/history', { params: { search } });
       let combined = [...res.data];
-      const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
-      const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+      const localGreetings = safeParseLocal('local_greetings', []);
+      const localFeedbacks = safeParseLocal('local_feedbacks', []);
       
       localGreetings.forEach(lg => {
         if (!combined.find(g => g.id === lg.id)) combined.push(lg);
@@ -3343,8 +3354,8 @@ function HistoryLog() {
       setHistory(combined);
     } catch (e) {
       console.warn("API Offline, displaying simulated history records");
-      const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
-      const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+      const localGreetings = safeParseLocal('local_greetings', []);
+      const localFeedbacks = safeParseLocal('local_feedbacks', []);
       
       let combined = localGreetings.map(g => {
         const fb = localFeedbacks.find(f => f.greeting_id === g.id);
@@ -3369,9 +3380,9 @@ function HistoryLog() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this log?")) return;
     setHistory(prev => prev.filter(item => item.id !== id));
-    const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+    const localGreetings = safeParseLocal('local_greetings', []);
     localStorage.setItem('local_greetings', JSON.stringify(localGreetings.filter(g => g.id !== id)));
-    const localFeedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+    const localFeedbacks = safeParseLocal('local_feedbacks', []);
     localStorage.setItem('local_feedbacks', JSON.stringify(localFeedbacks.filter(f => f.greeting_id !== id)));
     try {
       await api.delete(`/history/${id}`);
@@ -3393,7 +3404,7 @@ function HistoryLog() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search passenger name or destination..."
-          className="max-w-md w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl outline-none focus:border-indigo-500 text-sm"
+          className="max-w-md w-full h-[50px] px-4 py-0 leading-normal bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl outline-none focus:border-indigo-500 text-sm"
         />
       </div>
 
@@ -3550,7 +3561,7 @@ function TemplatesManager() {
       let local = [];
       if (typeof window !== 'undefined') {
         try {
-          local = JSON.parse(localStorage.getItem('custom_templates') || '[]');
+          local = safeParseLocal('custom_templates', []);
         } catch(err) {
           local = [];
         }
@@ -3684,23 +3695,23 @@ function TemplatesManager() {
             <form onSubmit={handleSave} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Title</label>
-                <input type="text" required value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. VIP Spiritual Journey" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm" />
+                <input type="text" required value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. VIP Spiritual Journey" className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Description</label>
-                <input type="text" value={description} onChange={e => setDescription(e.target.value)} placeholder="Brief description of when to use" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm" />
+                <input type="text" value={description} onChange={e => setDescription(e.target.value)} placeholder="Brief description of when to use" className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Subject Pattern</label>
-                <input type="text" value={subjectPattern} onChange={e => setSubjectPattern(e.target.value)} placeholder="Greeting for {{CustomerName}}" className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm" />
+                <input type="text" value={subjectPattern} onChange={e => setSubjectPattern(e.target.value)} placeholder="Greeting for {{CustomerName}}" className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Body Content Pattern</label>
-                <textarea required value={bodyPattern} onChange={e => setBodyPattern(e.target.value)} rows="5" placeholder="Use tags: {{CustomerName}}, {{Destination}}..." className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm resize-none font-mono" />
+                <textarea required value={bodyPattern} onChange={e => setBodyPattern(e.target.value)} rows="5" placeholder="Use tags: {{CustomerName}}, {{Destination}}..." className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm resize-none font-mono" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Language</label>
-                <select value={language} onChange={e => setLanguage(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm">
+                <select value={language} onChange={e => setLanguage(e.target.value)} className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm">
                   <option value="English">English</option>
                   <option value="Telugu">Telugu</option>
                   <option value="Hindi">Hindi</option>
@@ -3717,7 +3728,7 @@ function TemplatesManager() {
                   {editingId ? 'Update Settings' : 'Create Template'}
                 </button>
                 {editingId && (
-                  <button type="button" onClick={resetForm} className="px-4 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-semibold text-slate-400">
+                  <button type="button" onClick={resetForm} className="h-[50px] px-4 py-0 leading-normal bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-semibold text-slate-400">
                     Cancel
                   </button>
                 )}
@@ -4114,7 +4125,7 @@ function UserProfile() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
-                  <input type="text" disabled={!isEditing} value={fullName} onChange={e => setFullName(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" />
+                  <input type="text" disabled={!isEditing} value={fullName} onChange={e => setFullName(e.target.value)} className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" />
                   {isEditing && fullName.length > 0 && (
                     <div className={`mt-1.5 text-xs font-semibold ${fullName.length >= 3 ? 'text-emerald-500' : 'text-rose-500'}`}>
                       {fullName.length >= 3 ? '✓ Valid full name pattern detected.' : '✗ Name must be at least 3 characters.'}
@@ -4123,11 +4134,11 @@ function UserProfile() {
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Username</label>
-                  <input type="text" disabled={!isEditing} value={usernameInput} onChange={e => setUsernameInput(e.target.value)} className={`w-full px-4 py-3 border rounded-xl outline-none text-sm font-mono transition-colors ${!isEditing ? 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 opacity-70' : 'bg-slate-50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:border-emerald-500'}`} />
+                  <input type="text" disabled={!isEditing} value={usernameInput} onChange={e => setUsernameInput(e.target.value)} className={`w-full h-[50px] px-4 py-0 leading-normal border rounded-xl outline-none text-sm font-mono transition-colors ${!isEditing ? 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 opacity-70' : 'bg-slate-50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:border-emerald-500'}`} />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
-                  <input type="email" disabled={!isEditing} required value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" />
+                  <input type="email" disabled={!isEditing} required value={email} onChange={e => setEmail(e.target.value)} className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" />
                   {isEditing && email.length > 0 && (
                     <div className={`mt-1.5 text-xs font-semibold ${email.match(/@g\.?mail\.com$/i) ? 'text-emerald-500' : 'text-rose-500'}`}>
                       {email.match(/@g\.?mail\.com$/i) ? '✓ Valid @gmail.com address detected.' : '✗ Email must be a @gmail.com address.'}
@@ -4136,7 +4147,7 @@ function UserProfile() {
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Phone Number</label>
-                  <input type="tel" disabled={!isEditing} value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" />
+                  <input type="tel" disabled={!isEditing} value={phone} onChange={e => setPhone(e.target.value)} className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" />
                   {isEditing && phone.length > 0 && (
                     <div className={`mt-1.5 text-xs font-semibold ${phone.match(/^\d{10}$/) ? 'text-emerald-500' : 'text-rose-500'}`}>
                       {phone.match(/^\d{10}$/) ? '✓ Valid 10-digit phone number detected.' : '✗ Phone number must be exactly 10 digits.'}
@@ -4153,7 +4164,7 @@ function UserProfile() {
                       </button>
                     )}
                   </div>
-                  <input type="text" disabled={!isEditing} value={location} onChange={e => setLocation(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" placeholder="e.g. New York, USA" />
+                  <input type="text" disabled={!isEditing} value={location} onChange={e => setLocation(e.target.value)} className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors" placeholder="e.g. New York, USA" />
                   {isEditing && location.length > 0 && (
                     <div className={`mt-1.5 text-xs font-semibold ${location.length >= 3 ? 'text-emerald-500' : 'text-rose-500'}`}>
                       {location.length >= 3 ? '✓ Valid location format detected.' : '✗ Location should be at least 3 characters.'}
@@ -4163,7 +4174,7 @@ function UserProfile() {
                 
                 <div>
                   <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Time Zone</label>
-                  <select disabled={!isEditing} value={timezone} onChange={e => setTimezone(e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors">
+                  <select disabled={!isEditing} value={timezone} onChange={e => setTimezone(e.target.value)} className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 disabled:opacity-60 transition-colors">
                     <option value="UTC">UTC (Universal Coordinated Time)</option>
                     <option value="EST">EST (Eastern Standard Time)</option>
                     <option value="PST">PST (Pacific Standard Time)</option>
@@ -4216,7 +4227,7 @@ function UserProfile() {
                     <input 
                       type={showPassword ? 'text' : 'password'} 
                       value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} 
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 transition-colors pr-10" 
+                      className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 transition-colors pr-10" 
                     />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600">
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -4240,7 +4251,7 @@ function UserProfile() {
                   <input 
                     type={showPassword ? 'text' : 'password'} 
                     value={newPassword} onChange={e => setNewPassword(e.target.value)} 
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 transition-colors pr-10" 
+                    className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 transition-colors pr-10" 
                   />
                   {newPassword.length > 0 && (
                     <div className={`mt-1.5 text-xs font-semibold ${newPassword.length >= 8 ? 'text-emerald-500' : 'text-rose-500'}`}>
@@ -4254,7 +4265,7 @@ function UserProfile() {
                   <input 
                     type={showPassword ? 'text' : 'password'} 
                     value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} 
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 transition-colors pr-10" 
+                    className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-200 transition-colors pr-10" 
                   />
                   {confirmPassword.length > 0 && (
                     <div className={`mt-1.5 text-xs font-semibold ${confirmPassword === newPassword ? 'text-emerald-500' : 'text-rose-500'}`}>
@@ -4399,8 +4410,8 @@ function SettingsPage() {
   };
 
   const handleExportData = () => {
-    const greetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
-    const feedbacks = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
+    const greetings = safeParseLocal('local_greetings', []);
+    const feedbacks = safeParseLocal('local_feedbacks', []);
     const blob = new Blob([JSON.stringify({ greetings, feedbacks, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'manivtha_crm_export.json'; a.click();
@@ -4431,7 +4442,7 @@ function SettingsPage() {
     </button>
   );
 
-  const inputCls = "w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 text-sm transition-colors";
+  const inputCls = "w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 text-sm transition-colors";
   const selectCls = inputCls;
   const labelCls = "block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2";
 
@@ -4702,8 +4713,8 @@ function AIFeedbackLoopPage() {
     );
   }
 
-  const localFbs = JSON.parse(localStorage.getItem('local_feedbacks') || '[]');
-  const localGreetings = JSON.parse(localStorage.getItem('local_greetings') || '[]');
+  const localFbs = safeParseLocal('local_feedbacks', []);
+  const localGreetings = safeParseLocal('local_greetings', []);
 
   const dist = [0, 0, 0, 0, 0];
   localFbs.forEach(fb => { if (fb.rating >= 1 && fb.rating <= 5) dist[fb.rating - 1]++; });
