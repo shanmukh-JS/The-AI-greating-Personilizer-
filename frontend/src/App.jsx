@@ -4760,10 +4760,19 @@ function AIFeedbackLoopPage() {
   const verdict = getVerdict();
 
   return (
-    <div className="w-full mx-auto space-y-8 pb-12 px-2">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="w-full mx-auto space-y-8 pb-12 px-2"
+    >
 
       {/* Page Header */}
-      <div className="flex items-start gap-5">
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="flex items-start gap-5"
+      >
         <div className="h-14 w-14 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-xl shadow-indigo-500/30 flex-shrink-0">
           <TrendingUp className="h-7 w-7 text-white" />
         </div>
@@ -4777,10 +4786,15 @@ function AIFeedbackLoopPage() {
             <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Live Quality Signal · {localFbs.length} rating{localFbs.length !== 1 ? 's' : ''} collected</span>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* 4-STEP CYCLE */}
-      <div className="bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4">
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4"
+      >
         <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">How the Loop Works — 4 Steps</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {steps.map((s, i) => (
@@ -4797,12 +4811,17 @@ function AIFeedbackLoopPage() {
             </div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* PROMPT EVOLUTION TIMELINE */}
-        <div className="bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4">
+        <motion.div
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4"
+        >
           <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Prompt Evolution History</p>
           <div className="relative space-y-3 pl-7">
             <div className="absolute left-[18px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-red-400 via-amber-400 to-emerald-400 rounded-full opacity-40"></div>
@@ -4824,10 +4843,15 @@ function AIFeedbackLoopPage() {
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* LIVE RATING + FLAGGED */}
-        <div className="space-y-4">
+        <motion.div
+          initial={{ x: 20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="space-y-4"
+        >
           <div className="bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4">
             <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Live Rating Distribution</p>
             <div className="flex items-center gap-4">
@@ -4907,9 +4931,9 @@ function AIFeedbackLoopPage() {
             </div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
-    </div>
+    </motion.div>
   );
 }
 
