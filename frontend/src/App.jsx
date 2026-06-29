@@ -1030,6 +1030,14 @@ function Dashboard() {
         allGreetings = allGreetings.filter(g => g.travel_type === travelType);
       }
       
+      let promptHistory = [];
+      try {
+        const phRes = await api.get('/prompt-history');
+        promptHistory = phRes.data;
+      } catch (phErr) {
+        console.warn("API offline, rendering simulated prompt history", phErr);
+      }
+      
       const totalGreetings = allGreetings.length;
       
       const greetingIds = new Set(allGreetings.map(g => g.id));
@@ -1092,6 +1100,7 @@ function Dashboard() {
         topDestinations,
         dailyUsage,
         recentFeedbacks,
+        promptHistory,
         performanceMetrics: {
           avgResponseMs: 2400,
           uptimePct: 99.9,
