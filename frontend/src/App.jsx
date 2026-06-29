@@ -4790,7 +4790,7 @@ function AIFeedbackLoopPage() {
         className="flex items-start gap-5"
       >
         <div className="h-14 w-14 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-xl shadow-indigo-500/30 flex-shrink-0">
-          <TrendingUp, Settings2 className="h-7 w-7 text-white" />
+          <TrendingUp className="h-7 w-7 text-white" />
         </div>
         <div>
           <h1 className="text-2xl font-display font-extrabold text-slate-900 dark:text-white">AI Feedback Loop</h1>
