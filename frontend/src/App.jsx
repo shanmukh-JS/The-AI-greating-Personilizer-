@@ -4839,7 +4839,7 @@ function AIFeedbackLoopPage() {
           </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="columns-1 lg:columns-2 gap-6 [&>div]:break-inside-avoid [&>div]:mb-6">
 
         {/* PROMPT EVOLUTION TIMELINE */}
         <motion.div
@@ -4892,12 +4892,12 @@ function AIFeedbackLoopPage() {
           </div>
         </motion.div>
 
-        {/* LIVE RATING + FLAGGED */}
+        {/* LIVE RATING */}
         <motion.div
           initial={{ x: 20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="space-y-4"
+          className="w-full"
         >
           <div 
             onClick={() => setIsRatingExpanded(!isRatingExpanded)}
@@ -4992,7 +4992,15 @@ function AIFeedbackLoopPage() {
             <div className={`p-3 rounded-xl border text-[11px] font-semibold leading-relaxed ${verdict.color}`}>{verdict.text}</div>
           </div>
 
-          {/* Flagged greetings */}
+        </motion.div>
+
+        {/* FLAGGED GREETINGS */}
+        <motion.div
+          initial={{ x: 20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.35 }}
+          className="w-full"
+        >
 <div 
             onClick={() => setIsFlaggedExpanded(!isFlaggedExpanded)}
             className="cursor-pointer bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 transition-all duration-300 hover:scale-[1.01] hover:-translate-y-1 hover:border-indigo-500/40 hover:shadow-xl hover:shadow-indigo-500/10"
@@ -5039,30 +5047,56 @@ function AIFeedbackLoopPage() {
             </AnimatePresence>
           </div>
         </motion.div>
-      </div>
 
       {/* HOW THE AI USES IT — Technical Detail */}
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.4 }}
-        className="bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-cyan-500/5 border border-indigo-500/15 rounded-3xl p-6 space-y-4"
       >
-        <p className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-400">How the AI Uses Your Ratings — Technical Detail</p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { icon: '🌡️', title: 'Temperature Control', detail: 'Temperature is set to 0.3 — low creativity prevents the AI from inventing details. If hallucinations are flagged via low ratings, temperature can be lowered further towards 0.0.' },
-            { icon: '📋', title: 'System Prompt Constraints', detail: 'The SYSTEM_PROMPT includes STRICT CONSTRAINTS built from past low-rating patterns: no invented flight numbers, no assumed hotel names, correct native script for each language.' },
-            { icon: '🔁', title: 'Retry & Fallback Engine', detail: '3 retry attempts with exponential backoff ensure the AI always responds. If all retries fail, a rules-based fallback engine generates a safe, structured greeting in the correct language.' },
-          ].map(item => (
-            <div key={item.title} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-900/50 border border-indigo-500/10 transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 hover:border-indigo-500/40 hover:shadow-xl hover:shadow-indigo-500/10">
-              <span className="text-2xl">{item.icon}</span>
-              <p className="text-xs font-bold text-slate-800 dark:text-white mt-2">{item.title}</p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">{item.detail}</p>
+        <div 
+          onClick={() => setIsTechExpanded(!isTechExpanded)}
+          className="cursor-pointer bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-cyan-500/5 border border-indigo-500/15 rounded-3xl p-6 transition-all duration-300 hover:scale-[1.01] hover:-translate-y-1 hover:border-indigo-500/40 hover:shadow-xl hover:shadow-indigo-500/10"
+        >
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2">
+              <Settings2 className="h-4 w-4 text-indigo-400" />
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-400">How the AI Uses Your Ratings — Technical Detail</p>
             </div>
-          ))}
+            <span className="text-[10px] font-bold text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded-full">{isTechExpanded ? 'Hide Tech Details' : 'Click to View Tech Details'}</span>
+          </div>
+          
+          <AnimatePresence>
+            {isTechExpanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                <div className="pt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {[
+                      { icon: '🌡️', title: 'Temperature Control', detail: 'Temperature is set to 0.3 — low creativity prevents the AI from inventing details. If hallucinations are flagged via low ratings, temperature can be lowered further towards 0.0.' },
+                      { icon: '📋', title: 'System Prompt Constraints', detail: 'The SYSTEM_PROMPT includes STRICT CONSTRAINTS built from past low-rating patterns: no invented flight numbers, no assumed hotel names, correct native script for each language.' },
+                      { icon: '🔁', title: 'Retry & Fallback Engine', detail: '3 retry attempts with exponential backoff ensure the AI always responds. If all retries fail, a rules-based fallback engine generates a safe, structured greeting in the correct language.' },
+                    ].map(item => (
+                      <div key={item.title} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-900/50 border border-indigo-500/10 transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 hover:border-indigo-500/40 hover:shadow-xl hover:shadow-indigo-500/10">
+                        <span className="text-2xl">{item.icon}</span>
+                        <p className="text-xs font-bold text-slate-800 dark:text-white mt-2">{item.title}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">{item.detail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
+
+      </div> {/* End of masonry columns */}
 
     </motion.div>
   );
