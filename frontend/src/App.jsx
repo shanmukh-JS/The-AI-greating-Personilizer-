@@ -4670,6 +4670,10 @@ function NotFoundPage() {
 function AIFeedbackLoopPage() {
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [isRatingExpanded, setIsRatingExpanded] = useState(false);
+  const [is4StepsExpanded, setIs4StepsExpanded] = useState(false);
+  const [isEvolutionExpanded, setIsEvolutionExpanded] = useState(false);
+  const [isFlaggedExpanded, setIsFlaggedExpanded] = useState(false);
+  const [isTechExpanded, setIsTechExpanded] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -4794,24 +4798,45 @@ function AIFeedbackLoopPage() {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4"
       >
-        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">How the Loop Works — 4 Steps</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {steps.map((s, i) => (
-            <div key={s.num} className={`relative p-5 rounded-2xl bg-gradient-to-br ${s.color} border ${s.border} flex flex-col gap-3 transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10`}>
-              {i < 3 && (
-                <div className="hidden lg:flex absolute -right-5 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 items-center justify-center text-slate-400 text-xs font-bold shadow">→</div>
-              )}
-              <span className="text-3xl">{s.emoji}</span>
-              <div>
-                <span className={`text-[9px] font-extrabold uppercase tracking-widest ${s.badge}`}>Step {s.num}</span>
-                <p className="text-sm font-bold text-slate-800 dark:text-white mt-0.5">{s.title}</p>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">{s.desc}</p>
-              </div>
+<div 
+            onClick={() => setIs4StepsExpanded(!is4StepsExpanded)}
+            className="cursor-pointer bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 transition-all duration-300 hover:scale-[1.01] hover:-translate-y-1 hover:border-indigo-500/40 hover:shadow-xl hover:shadow-indigo-500/10"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">How the Loop Works — 4 Steps</p>
+              <span className="text-[10px] font-bold text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded-full">{is4StepsExpanded ? 'Hide Steps' : 'Click to View Steps'}</span>
             </div>
-          ))}
-        </div>
+            <AnimatePresence>
+              {is4StepsExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {steps.map((s, i) => (
+                        <div key={s.num} className={`relative p-5 rounded-2xl bg-gradient-to-br ${s.color} border ${s.border} flex flex-col gap-3 transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10`}>
+                          {i < 3 && (
+                            <div className="hidden lg:flex absolute -right-5 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 items-center justify-center text-slate-400 text-xs font-bold shadow">→</div>
+                          )}
+                          <span className="text-3xl">{s.emoji}</span>
+                          <div>
+                            <span className={`text-[9px] font-extrabold uppercase tracking-widest ${s.badge}`}>Step {s.num}</span>
+                            <p className="text-sm font-bold text-slate-800 dark:text-white mt-0.5">{s.title}</p>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">{s.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -4821,28 +4846,49 @@ function AIFeedbackLoopPage() {
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4"
         >
-          <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Prompt Evolution History</p>
-          <div className="relative space-y-3 pl-7">
-            <div className="absolute left-[18px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-red-400 via-amber-400 to-emerald-400 rounded-full opacity-40"></div>
-            {promptStages.map((stage) => (
-              <div key={stage.version} className={`relative flex gap-4 p-4 rounded-2xl border transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-lg ${stage.active ? 'bg-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/60 hover:shadow-emerald-500/10' : 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700 hover:border-indigo-500/40 hover:shadow-indigo-500/10'}`}>
-                <div className={`absolute -left-[24px] top-1/2 -translate-y-1/2 h-4 w-4 rounded-full bg-gradient-to-br ${stage.gradient} border-2 border-white dark:border-slate-900 shadow-md`}></div>
-                <div className={`flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br ${stage.gradient} flex items-center justify-center shadow`}>
-                  <span className="text-[10px] font-extrabold text-white">{stage.version}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold text-slate-800 dark:text-white">{stage.label}</span>
-                    {stage.active && <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">● LIVE</span>}
+<div 
+            onClick={() => setIsEvolutionExpanded(!isEvolutionExpanded)}
+            className="cursor-pointer bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 transition-all duration-300 hover:scale-[1.01] hover:-translate-y-1 hover:border-indigo-500/40 hover:shadow-xl hover:shadow-indigo-500/10"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Prompt Evolution History</p>
+              <span className="text-[10px] font-bold text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded-full">{isEvolutionExpanded ? 'Hide History' : 'Click to View History'}</span>
+            </div>
+            <AnimatePresence>
+              {isEvolutionExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-2">
+                    <div className="relative space-y-3 pl-7">
+                      <div className="absolute left-[18px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-red-400 via-amber-400 to-emerald-400 rounded-full opacity-40"></div>
+                      {promptStages.map((stage) => (
+                        <div key={stage.version} className={`relative flex gap-4 p-4 rounded-2xl border transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-lg ${stage.active ? 'bg-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/60 hover:shadow-emerald-500/10' : 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700 hover:border-indigo-500/40 hover:shadow-indigo-500/10'}`}>
+                          <div className={`absolute -left-[24px] top-1/2 -translate-y-1/2 h-4 w-4 rounded-full bg-gradient-to-br ${stage.gradient} border-2 border-white dark:border-slate-900 shadow-md`}></div>
+                          <div className={`flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br ${stage.gradient} flex items-center justify-center shadow`}>
+                            <span className="text-[10px] font-extrabold text-white">{stage.version}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-bold text-slate-800 dark:text-white">{stage.label}</span>
+                              {stage.active && <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">● LIVE</span>}
+                            </div>
+                            {stage.problem && <p className="text-[11px] text-rose-500 dark:text-rose-400 mt-1">❌ {stage.problem}</p>}
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{stage.active ? `✅ ${stage.ratingImpact}` : `⭐ Rating impact: ${stage.ratingImpact}`}</p>
+                            <p className="text-[10px] text-indigo-500 dark:text-indigo-400 font-semibold mt-1">{stage.active ? `⚙️ ${stage.fix}` : `→ Fix: ${stage.fix}`}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  {stage.problem && <p className="text-[11px] text-rose-500 dark:text-rose-400 mt-1">❌ {stage.problem}</p>}
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{stage.active ? `✅ ${stage.ratingImpact}` : `⭐ Rating impact: ${stage.ratingImpact}`}</p>
-                  <p className="text-[10px] text-indigo-500 dark:text-indigo-400 font-semibold mt-1">{stage.active ? `⚙️ ${stage.fix}` : `→ Fix: ${stage.fix}`}</p>
-                </div>
-              </div>
-            ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
 
@@ -4947,30 +4993,50 @@ function AIFeedbackLoopPage() {
           </div>
 
           {/* Flagged greetings */}
-          <div className="bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-3">
-            <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Flagged Low-Rated Greetings (1–2★)</p>
-            {flagged.length === 0 ? (
-              <div className="flex flex-col items-center py-8 text-center">
-                <CheckCircle size={28} className="text-emerald-400 mb-2" />
-                <p className="text-sm font-semibold text-slate-400">No low-rated greetings</p>
-                <p className="text-xs text-slate-400/70 mt-1">All ratings are 3★ or above — great quality!</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {flagged.map((fb, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-rose-500/5 border border-rose-500/15 transition-all duration-300 hover:scale-[1.02] hover:bg-rose-500/10 hover:border-rose-500/40 hover:shadow-lg hover:shadow-rose-500/10">
-                    <div className="h-8 w-8 rounded-full bg-rose-500/15 flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-extrabold text-rose-500">{fb.rating}★</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-800 dark:text-white truncate">{fb.customer_name}</p>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{fb.destination} · {fb.language}</p>
-                    </div>
-                    {fb.comments && <p className="text-[10px] text-rose-500 italic truncate max-w-[120px]">"{fb.comments}"</p>}
+<div 
+            onClick={() => setIsFlaggedExpanded(!isFlaggedExpanded)}
+            className="cursor-pointer bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 transition-all duration-300 hover:scale-[1.01] hover:-translate-y-1 hover:border-indigo-500/40 hover:shadow-xl hover:shadow-indigo-500/10"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Flagged Low-Rated Greetings (1–2★)</p>
+              <span className="text-[10px] font-bold text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded-full">{isFlaggedExpanded ? 'Hide Flagged' : 'Click to View Flagged'}</span>
+            </div>
+            <AnimatePresence>
+              {isFlaggedExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-2">
+                    {flagged.length === 0 ? (
+                      <div className="flex flex-col items-center py-8 text-center">
+                        <CheckCircle size={28} className="text-emerald-400 mb-2" />
+                        <p className="text-sm font-semibold text-slate-400">No low-rated greetings</p>
+                        <p className="text-xs text-slate-400/70 mt-1">All ratings are 3★ or above — great quality!</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {flagged.map((fb, i) => (
+                          <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-rose-500/5 border border-rose-500/15 transition-all duration-300 hover:scale-[1.02] hover:bg-rose-500/10 hover:border-rose-500/40 hover:shadow-lg hover:shadow-rose-500/10">
+                            <div className="h-8 w-8 rounded-full bg-rose-500/15 flex items-center justify-center flex-shrink-0">
+                              <span className="text-xs font-extrabold text-rose-500">{fb.rating}★</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-bold text-slate-800 dark:text-white truncate">{fb.customer_name}</p>
+                              <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{fb.destination} · {fb.language}</p>
+                            </div>
+                            {fb.comments && <p className="text-[10px] text-rose-500 italic truncate max-w-[120px]">"{fb.comments}"</p>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
       </div>
