@@ -4850,8 +4850,9 @@ function AIFeedbackLoopPage() {
           </div>
       </motion.div>
 
-      <div className="columns-1 lg:columns-2 gap-6 [&>div]:break-inside-avoid [&>div]:mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
+        <div className="flex flex-col gap-6">
         {/* PROMPT EVOLUTION TIMELINE */}
         <motion.div
           initial={{ x: -20, opacity: 0 }}
@@ -5005,6 +5006,9 @@ function AIFeedbackLoopPage() {
 
         </motion.div>
 
+        </div>
+
+        <div className="flex flex-col gap-6">
         {/* FLAGGED GREETINGS */}
         <motion.div
           initial={{ x: 20, opacity: 0 }}
@@ -5107,7 +5111,8 @@ function AIFeedbackLoopPage() {
         </div>
       </motion.div>
 
-      </div> {/* End of masonry columns */}
+      </div> </div>
+      {/* End of masonry columns */}
 
     </motion.div>
   );
