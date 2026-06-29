@@ -27,7 +27,7 @@ const safeParseLocal = (key, defaultVal) => {
 
 // API Configuration & Base Instance with Automatic Interceptors
 const API_URL = import.meta.env.VITE_API_URL;
-const api = axios.create({ baseURL: API_URL, timeout: 1000 });
+const api = axios.create({ baseURL: API_URL, timeout: 15000 });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
