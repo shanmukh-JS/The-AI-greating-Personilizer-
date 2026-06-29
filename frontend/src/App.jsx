@@ -3062,7 +3062,7 @@ function GreetingGenerator() {
 
           <div>
             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Special Instructions / Notes</label>
-            <textarea value={specialNotes} onChange={e => setSpecialNotes(e.target.value)} rows="3" placeholder="e.g. Senior citizen requires wheelchair assistance." className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm resize-none transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
+            <textarea value={specialNotes} onChange={e => setSpecialNotes(e.target.value)} rows="3" placeholder="e.g. Senior citizen requires wheelchair assistance." className="w-full px-4 py-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm resize-none transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:ring-1 focus:ring-indigo-500/20" />
           </div>
 
           <button type="submit" disabled={loading} className="w-full py-4 hero-gradient text-white rounded-2xl font-bold hover:opacity-95 hover:scale-[1.01] active:scale-[0.99] transition-all text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-indigo-500/10">
@@ -3707,7 +3707,7 @@ function TemplatesManager() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Body Content Pattern</label>
-                <textarea required value={bodyPattern} onChange={e => setBodyPattern(e.target.value)} rows="5" placeholder="Use tags: {{CustomerName}}, {{Destination}}..." className="w-full h-[50px] px-4 py-0 leading-normal bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm resize-none font-mono" />
+                <textarea required value={bodyPattern} onChange={e => setBodyPattern(e.target.value)} rows="5" placeholder="Use tags: {{CustomerName}}, {{Destination}}..." className="w-full px-4 py-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:border-indigo-500 text-sm resize-none font-mono" />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Language</label>
