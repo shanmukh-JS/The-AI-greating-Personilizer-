@@ -4853,8 +4853,14 @@ function AIFeedbackLoopPage() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="space-y-4"
         >
-          <div className="bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4">
-            <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Live Rating Distribution</p>
+          <div 
+            onClick={() => setIsRatingExpanded(!isRatingExpanded)}
+            className="cursor-pointer bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:border-indigo-500/40 hover:shadow-xl hover:shadow-indigo-500/10"
+          >
+            <div className="flex justify-between items-center">
+              <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Live Rating Distribution</p>
+              <span className="text-[10px] font-bold text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded-full">{isRatingExpanded ? 'Hide Details' : 'Click to View Detailed Logs'}</span>
+            </div>
             <div className="flex items-center gap-4">
               <div className="flex flex-col items-center justify-center h-20 w-20 rounded-3xl bg-gradient-to-br from-indigo-500 to-cyan-400 shadow-xl shadow-indigo-500/25 flex-shrink-0">
                 <span className="text-2xl font-extrabold text-white leading-none">{avgRating}</span>
