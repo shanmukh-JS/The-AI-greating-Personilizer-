@@ -1083,7 +1083,8 @@ function Dashboard() {
         };
       }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
       
-      setMetrics({
+      setMetrics(prev => ({
+        ...prev,
         allFeedbacks: filteredFeedback,
         totalGreetings,
         averageRating,
@@ -1096,7 +1097,7 @@ function Dashboard() {
           uptimePct: 99.9,
           aiSuccessRate: 99.2
         }
-      });
+      }));
       
       setLoading(false);
     }

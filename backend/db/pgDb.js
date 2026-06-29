@@ -68,6 +68,17 @@ async function initDb() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
 
+      CREATE TABLE IF NOT EXISTS prompt_versions (
+        id UUID PRIMARY KEY,
+        version_name VARCHAR(50) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        issues TEXT,
+        rating_impact TEXT,
+        fix_description TEXT,
+        is_live BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
       CREATE TABLE IF NOT EXISTS feedback (
         id UUID PRIMARY KEY,
         greeting_id UUID REFERENCES greetings(id) ON DELETE CASCADE,
@@ -85,6 +96,16 @@ async function initDb() {
         ('b3014a5c-59bc-47cb-8c9f-d31e9c5a1a1f', 'admin', '$2a$10$pXI8WOQQ3HSbX0tufILAqeeZRRTVZhvHB8YqmV6XKPppIfHc2840S', 'admin', 'admin@manivthatravels.com'),
         ('d2903b4b-48ab-46cb-8b8f-c20d8c4a0a0f', 'agent', '$2a$10$pXI8WOQQ3HSbX0tufILAqeeZRRTVZhvHB8YqmV6XKPppIfHc2840S', 'staff', 'agent@manivthatravels.com'),
         ('a1014a5c-59bc-47cb-8c9f-d31e9c5a1a1f', 'NIAT x AURORA', '$2a$10$VRhcEGdTgmeNK8kdoQOC5eC22.XvkXIZRHRScnq/2Rt9c/sl7c6mK', 'admin', 'niatxaurora@manivthatravels.com')
+      `);
+      
+      // Prompt Versions Seed
+      await client.query(`
+        INSERT INTO prompt_versions (id, version_name, title, issues, rating_impact, fix_description, is_live) VALUES
+        ('v1000000-0000-0000-0000-000000000001', 'V1', 'Basic Text Generator', 'Outputs were too generic, inconsistent in tone, no brand identity.', 'Agents rated low — greetings felt copy-paste and impersonal.', 'Added loyalty category (Standard / Premium / VIP) and brand signature.', false),
+        ('v2000000-0000-0000-0000-000000000002', 'V2', 'Structured Template', 'Format improved, but ignored preferred language and special notes.', 'Non-English customers received English-only greetings — very low ratings.', 'Added multilingual support (8 languages) and a special notes input field.', false),
+        ('v3000000-0000-0000-0000-000000000003', 'V3', 'Multilingual & Contextual', 'AI invented hotel check-in times, flight numbers, and tour schedules.', 'Hallucinated facts caused customer confusion and complaint escalations.', 'Introduced STRICT CONSTRAINTS block — zero hallucination policy enforced.', false),
+        ('v4000000-0000-0000-0000-000000000004', 'V4', 'Production-Grade (LIVE)', '', '', 'Tone-matched, language-native, loyalty-aware, zero hallucinations.\nTemperature 0.3 • Max 500 tokens • 3-retry exponential backoff • Fallback engine.', true)
+        ON CONFLICT (id) DO NOTHING
       `);
       
       // Default Templates
@@ -402,6 +423,12 @@ async function getAnalyticsData(filters = {}) {
   };
 }
 
+// PROMPT HISTORY OPERATIONS
+async function getPromptHistory() {
+  const res = await pool.query('SELECT * FROM prompt_versions ORDER BY created_at ASC');
+  return res.rows;
+}
+
 // PRESETS OPERATIONS
 async function getPresets() {
   const res = await pool.query('SELECT * FROM presets ORDER BY created_at ASC');
@@ -444,6 +471,7 @@ module.exports = {
   createTemplate,
   updateTemplate,
   deleteTemplate,
+  getPromptHistory,
   getAnalyticsData,
   getPresets,
   createPreset,
