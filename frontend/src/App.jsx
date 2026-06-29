@@ -1482,7 +1482,7 @@ function Dashboard() {
         return (
           <div 
             onClick={() => navigate('/ai-feedback-loop')}
-            className="cursor-pointer hover:scale-[1.01] hover:shadow-indigo-500/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl p-6 space-y-6 group transition-all"
+            className="cursor-pointer hover:scale-[1.01] hover:shadow-indigo-500/10 hover-highlight hover:border-indigo-500/50 bg-white/60 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 rounded-3xl p-6 space-y-6 group transition-all"
           >
             {/* Header */}
             <div className="flex items-center justify-between flex-wrap gap-3">
