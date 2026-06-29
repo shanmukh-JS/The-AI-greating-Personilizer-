@@ -4912,11 +4912,16 @@ function AIFeedbackLoopPage() {
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* HOW THE AI USES IT — Technical Detail */}
-      <div className="bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-cyan-500/5 border border-indigo-500/15 rounded-3xl p-6 space-y-4">
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-cyan-500/5 border border-indigo-500/15 rounded-3xl p-6 space-y-4"
+      >
         <p className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-400">How the AI Uses Your Ratings — Technical Detail</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
