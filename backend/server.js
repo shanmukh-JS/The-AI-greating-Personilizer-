@@ -205,6 +205,18 @@ app.post('/api/sync', authenticateToken, async (req, res) => {
   }
 });
 
+
+// GET /api/prompt-history
+app.get('/api/prompt-history', async (req, res) => {
+  try {
+    const records = await db.getPromptHistory();
+    res.json(records);
+  } catch (error) {
+    console.error('Error fetching prompt history:', error);
+    res.status(500).json({ error: 'Failed to fetch prompt history.' });
+  }
+});
+
 // GET /api/history (Query generated log list)
 app.get('/api/history', authenticateToken, async (req, res) => {
   try {
