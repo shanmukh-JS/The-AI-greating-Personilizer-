@@ -106,6 +106,42 @@ export function AuthProvider({ children }) {
         }
       }
       
+      // Seed initial data if empty to accurately reflect demo UI
+      const seedMockData = () => {
+        const hasData = localStorage.getItem('local_feedbacks');
+        if (!hasData || JSON.parse(hasData).length === 0) {
+          const dummyGreetings = [];
+          const dummyFeedbacks = [];
+          const createEntry = (id, rating, name, dest, lang, comment) => {
+            const dt = new Date();
+            dt.setDate(dt.getDate() - Math.floor(Math.random() * 5)); // recent dates
+            dummyGreetings.push({
+              id, created_at: dt.toISOString(),
+              customer_name: name, destination: dest, language: lang,
+              travel_type: 'Family Trip', loyalty_tier: 'Standard', special_notes: ''
+            });
+            dummyFeedbacks.push({
+              greeting_id: id, rating, comments: comment, created_at: dt.toISOString()
+            });
+          };
+
+          // 21 x 5-star
+          for (let i=0; i<21; i++) createEntry(`g-5-${i}`, 5, `Demo User ${i+1}`, 'Tirupati', 'Telugu', 'Perfect greeting, thanks!');
+          // 1 x 4-star
+          createEntry(`g-4-0`, 4, `Demo User 22`, 'Goa', 'English', 'Good tone.');
+          // 5 x 3-star
+          for (let i=0; i<5; i++) createEntry(`g-3-${i}`, 3, `Demo User ${23+i}`, 'Manali', 'Hindi', 'A bit generic.');
+          // 1 x 2-star
+          createEntry(`g-2-0`, 2, `Demo User 28`, 'Paris', 'French', 'Wrong loyalty tier mentioned.');
+          // 1 x 1-star
+          createEntry(`g-1-0`, 1, `Demo User 29`, 'Dubai', 'Arabic', 'Hallucinated flight details.');
+          
+          localStorage.setItem('local_greetings', JSON.stringify(dummyGreetings));
+          localStorage.setItem('local_feedbacks', JSON.stringify(dummyFeedbacks));
+        }
+      };
+      seedMockData();
+
       // Enforce History Retention Period
       const enforceRetention = () => {
         const retentionDays = localStorage.getItem('settings_historyRetention') || '90';
@@ -4883,9 +4919,9 @@ function AIFeedbackLoopPage() {
                 <span className="text-[9px] font-bold text-indigo-100 uppercase tracking-wider mt-0.5">Avg ★</span>
               </div>
               <div className="flex flex-col gap-1.5 text-[11px] font-semibold">
-                <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span><span className="text-slate-600 dark:text-slate-300">{highCount} high-quality (4–5★) — approved</span></div>
-                <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-amber-500"></span><span className="text-slate-600 dark:text-slate-300">{midCount} neutral (3★)</span></div>
-                <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-rose-500"></span><span className="text-slate-600 dark:text-slate-300">{lowCount} flagged (1–2★) — triggered review</span></div>
+                <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span><span className="text-slate-600 dark:text-slate-300">{highCount} high-quality (4–5★) — prompt approved</span></div>
+                <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-rose-500"></span><span className="text-slate-600 dark:text-slate-300">{lowCount} flagged (1–2★) — triggered prompt review</span></div>
+                <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-slate-400"></span><span className="text-slate-600 dark:text-slate-300">{totalFb} total ratings collected</span></div>
               </div>
             </div>
             <div className="space-y-2.5">
