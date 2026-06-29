@@ -4917,16 +4917,22 @@ function AIFeedbackLoopPage() {
                               <span className="text-[10px] font-bold opacity-80">{star >= 4 ? 'Excellent / Minor tweaks' : star === 3 ? 'Neutral / OK' : 'Flagged for Review'}</span>
                             </div>
                             <div className="space-y-2">
-                              {logs.map((log, idx) => (
-                                <div key={idx} className="bg-white/50 dark:bg-slate-950/50 p-2 rounded-xl text-[10px]">
-                                  <div className="flex justify-between font-bold text-slate-700 dark:text-slate-300">
-                                    <span>{log.customer_name}</span>
-                                    <span>{log.destination}</span>
+                              {logs.map((log, idx) => {
+                                const g = localGreetings.find(g => g.id === log.greeting_id);
+                                const custName = g?.customer_name || 'Unknown';
+                                const dest = g?.destination || '—';
+                                const greetingText = g?.generated_greeting || g?.greeting || 'Greeting text unavailable...';
+                                return (
+                                  <div key={idx} className="bg-white/50 dark:bg-slate-950/50 p-2 rounded-xl text-[10px]">
+                                    <div className="flex justify-between font-bold text-slate-700 dark:text-slate-300">
+                                      <span>{custName}</span>
+                                      <span>{dest}</span>
+                                    </div>
+                                    <p className="mt-1 text-slate-600 dark:text-slate-400 italic">"{greetingText.substring(0, 70)}..."</p>
+                                    {log.comments && <p className="mt-1 font-semibold text-rose-500 dark:text-rose-400">Feedback: {log.comments}</p>}
                                   </div>
-                                  <p className="mt-1 text-slate-600 dark:text-slate-400 italic">"{log.greeting.substring(0, 50)}..."</p>
-                                  {log.comments && <p className="mt-1 font-semibold text-rose-500 dark:text-rose-400">Feedback: {log.comments}</p>}
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </div>
                         );
