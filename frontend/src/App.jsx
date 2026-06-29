@@ -118,40 +118,21 @@ export function AuthProvider({ children }) {
       }
       
       // Seed initial data if empty to accurately reflect demo UI
-      const seedMockData = () => {
-        const hasData = localStorage.getItem('local_feedbacks');
-        if (!hasData || JSON.parse(hasData).length === 0) {
-          const dummyGreetings = [];
-          const dummyFeedbacks = [];
-          const createEntry = (id, rating, name, dest, lang, comment) => {
-            const dt = new Date();
-            dt.setDate(dt.getDate() - Math.floor(Math.random() * 5)); // recent dates
-            dummyGreetings.push({
-              id, created_at: dt.toISOString(),
-              customer_name: name, destination: dest, language: lang,
-              travel_type: 'Family Trip', loyalty_tier: 'Standard', special_notes: ''
-            });
-            dummyFeedbacks.push({
-              greeting_id: id, rating, comments: comment, created_at: dt.toISOString()
-            });
-          };
-
-          // 21 x 5-star
-          for (let i=0; i<21; i++) createEntry(`g-5-${i}`, 5, `Demo User ${i+1}`, 'Tirupati', 'Telugu', 'Perfect greeting, thanks!');
-          // 1 x 4-star
-          createEntry(`g-4-0`, 4, `Demo User 22`, 'Goa', 'English', 'Good tone.');
-          // 5 x 3-star
-          for (let i=0; i<5; i++) createEntry(`g-3-${i}`, 3, `Demo User ${23+i}`, 'Manali', 'Hindi', 'A bit generic.');
-          // 1 x 2-star
-          createEntry(`g-2-0`, 2, `Demo User 28`, 'Paris', 'French', 'Wrong loyalty tier mentioned.');
-          // 1 x 1-star
-          createEntry(`g-1-0`, 1, `Demo User 29`, 'Dubai', 'Arabic', 'Hallucinated flight details.');
-          
-          localStorage.setItem('local_greetings', JSON.stringify(dummyGreetings));
-          localStorage.setItem('local_feedbacks', JSON.stringify(dummyFeedbacks));
+      // Clean up any previously seeded mock data
+      const removeMock = (key) => {
+        const data = safeParseLocal(key, []);
+        if (data.length > 0) {
+          const filtered = data.filter(item => 
+            !(item.id && String(item.id).startsWith('g-')) && 
+            !(item.greeting_id && String(item.greeting_id).startsWith('g-'))
+          );
+          if (filtered.length !== data.length) {
+            localStorage.setItem(key, JSON.stringify(filtered));
+          }
         }
       };
-      seedMockData();
+      removeMock('local_greetings');
+      removeMock('local_feedbacks');
 
       // Enforce History Retention Period
       const enforceRetention = () => {
