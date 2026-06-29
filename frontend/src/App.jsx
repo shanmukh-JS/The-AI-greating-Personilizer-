@@ -5192,6 +5192,12 @@ export default function App() {
             </ProtectedRoute>
           } />
           
+          <Route path="/ai-feedback-loop" element={
+            <ProtectedRoute>
+              <Layout><AIFeedbackLoopPage /></Layout>
+            </ProtectedRoute>
+          } />
+          
           <Route path="/history" element={
             <ProtectedRoute>
               <Layout><HistoryLog /></Layout>
