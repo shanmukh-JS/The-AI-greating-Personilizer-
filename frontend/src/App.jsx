@@ -1084,6 +1084,7 @@ function Dashboard() {
       }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
       
       setMetrics({
+        allFeedbacks: filteredFeedback,
         totalGreetings,
         averageRating,
         feedbackCount: filteredFeedback.length,
@@ -1490,16 +1491,13 @@ function Dashboard() {
           AI FEEDBACK LOOP — How Ratings Drive AI Improvement
           ═══════════════════════════════════════════════════════════════ */}
       {(() => {
-        const localGreetings = safeParseLocal('live_greetings', []);
-        const localFbs = safeParseLocal('live_feedbacks', []);
+        const fbData = metrics?.allFeedbacks || [];
 
         // Rating distribution
         const dist = [0,0,0,0,0]; // index = rating-1
-        localFbs.forEach(fb => { if (fb.rating >= 1 && fb.rating <= 5) dist[fb.rating - 1]++; });
-        const totalFb = localFbs.length || 1;
-        const avgRating = localFbs.length
-          ? (localFbs.reduce((s,f) => s + f.rating, 0) / localFbs.length).toFixed(1)
-          : '0.0';
+        fbData.forEach(fb => { if (fb.rating >= 1 && fb.rating <= 5) dist[fb.rating - 1]++; });
+        const totalFb = fbData.length || 1;
+        const avgRating = metrics?.averageRating?.toFixed(1) || '0.0';
         const lowCount = dist[0] + dist[1]; // 1-2 stars (needs improvement)
         const highCount = dist[3] + dist[4]; // 4-5 stars (approved)
 
@@ -1545,7 +1543,7 @@ function Dashboard() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="h-2.5 w-2.5 rounded-full bg-slate-400"></span>
-                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{localFbs.length} total ratings collected</span>
+                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{fbData.length} total ratings collected</span>
                     </div>
                   </div>
                 </div>
