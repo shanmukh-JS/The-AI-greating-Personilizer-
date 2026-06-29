@@ -4721,12 +4721,20 @@ function AIFeedbackLoopPage() {
   const [isEvolutionExpanded, setIsEvolutionExpanded] = useState(true);
   const [isFlaggedExpanded, setIsFlaggedExpanded] = useState(true);
   const [isTechExpanded, setIsTechExpanded] = useState(true);
+  const [promptHistory, setPromptHistory] = useState([]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsPageLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
+    const fetchHistory = async () => {
+      try {
+        const phRes = await api.get('/prompt-history');
+        setPromptHistory(phRes.data);
+      } catch (err) {
+        console.warn('Failed to fetch prompt history in AIFeedbackLoopPage', err);
+      } finally {
+        setTimeout(() => setIsPageLoading(false), 500);
+      }
+    };
+    fetchHistory();
   }, []);
 
   if (isPageLoading) {
@@ -4763,7 +4771,7 @@ function AIFeedbackLoopPage() {
   const highCount = dist[3] + dist[4];
 
   const gradients = ['from-red-500 to-orange-500', 'from-orange-500 to-amber-500', 'from-amber-500 to-yellow-400', 'from-emerald-500 to-cyan-400', 'from-indigo-500 to-purple-500', 'from-pink-500 to-rose-500'];
-  const dbStages = (metrics?.promptHistory || []).map((dbItem, index) => ({
+  const dbStages = (promptHistory || []).map((dbItem, index) => ({
     version: dbItem.version_name,
     label: dbItem.title,
     gradient: gradients[index % gradients.length],
